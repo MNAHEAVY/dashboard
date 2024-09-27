@@ -8,13 +8,16 @@ import Login from "./Login";
 import { Disclosure, DisclosureButton, DisclosurePanel } from "@headlessui/react";
 import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline";
 import { useState } from "react";
+//import Users from "./AllUsers";
 
 const navigation = [
   { name: "Productos", component: "Productos" },
   { name: "Crear", component: "Crear" },
   { name: "Borrar", component: "Borrar" },
   { name: "Valores", component: "Editar" },
-  { name: "Stock", component: "Stock" },
+  // { name: "Usuarios", component: "Users" },
+  // { name: "Banners", component: "Users" },
+  // { name: "Ventas", component: "Users" },
 ];
 
 function classNames(...classes) {
@@ -40,6 +43,12 @@ export default function Dashboard() {
         return <Borrar />;
       case "Editar":
         return <Editar />;
+      // case "Usuarios":
+      //   return <Users />;
+      // case "Banners":
+      //   return <Users />;
+      // case "Ventas":
+      //   return <Users />;
       default:
         return <Productos />;
     }
