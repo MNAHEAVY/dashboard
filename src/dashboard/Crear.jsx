@@ -295,6 +295,7 @@ export default function Crear() {
                     <option value={"Accesorios"}>iPad</option>
                     <option value={"Watch"}>Mac</option>
                     <option value={"Airpods"}>AirPods</option>
+                    <option value={"Airpods"}>EarPods</option>
                     <option value={"Baterias"}>Apple Watch</option>
                     <option value={"Modulos"}>Accesorios</option>
                     <option value={"Tapa trasera"}>Otros</option>
