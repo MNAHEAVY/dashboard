@@ -277,15 +277,15 @@ export default function Crear() {
               {/* Categoria */}
               <div className='sm:col-span-1'>
                 <label
-                  htmlFor='categoria'
+                  htmlFor='categorias'
                   className='block text-sm font-medium leading-6 text-gray-900'
                 >
                   Categoría
                 </label>
                 <div className='mt-2'>
                   <select
-                    id='categoria'
-                    name='categoria'
+                    id='categorias'
+                    name='categorias'
                     value={inputForm.categorias}
                     onChange={(e) => handleChange(e)}
                     className='block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset placeholder:text-gray-400 focus:ring-2 focus:ring-indigo-600 sm:text-sm'
