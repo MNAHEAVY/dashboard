@@ -297,7 +297,7 @@ export default function Crear() {
                     onChange={(e) => handleChange(e)}
                     className='block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset placeholder:text-gray-400 focus:ring-2 focus:ring-indigo-600 sm:text-sm'
                   >
-                    <option disabled>Elige</option>
+                    <option>Elige</option>
                     <option value={"Iphone"}>iPhone</option>
                     <option value={"Accesorios"}>iPad</option>
                     <option value={"Watch"}>Mac</option>
@@ -325,7 +325,7 @@ export default function Crear() {
                     onChange={(e) => handleChange(e)}
                     className='block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset placeholder:text-gray-400 focus:ring-2 focus:ring-indigo-600 sm:text-sm'
                   >
-                    <option disabled>Elige</option>
+                    <option>Elige</option>
                     <option value={"iPhone 16"}>iPhone 16</option>
                     <option value={"iPhone 15"}>iPhone 15</option>
                     <option value={"iPhone 14"}>iPhone 14</option>
@@ -456,7 +456,7 @@ export default function Crear() {
                     onChange={(e) => handleChange(e)}
                     className='block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset placeholder:text-gray-400 focus:ring-2 focus:ring-indigo-600 sm:text-sm'
                   >
-                    <option disabled>Elige</option>
+                    <option>Elige</option>
                     <option value={"nuevo"}>Nuevo</option>
                     <option value={"swap"}>Swap</option>
                   </select>
@@ -498,7 +498,7 @@ export default function Crear() {
                     onChange={(e) => handleChange(e)}
                     className='block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset placeholder:text-gray-400 focus:ring-2 focus:ring-indigo-600 sm:text-sm'
                   >
-                    <option disabled>Elige</option>
+                    <option>Elige</option>
                     <option value={true}>Si</option>
                     <option value={false}>No</option>
                   </select>
@@ -598,7 +598,7 @@ export default function Crear() {
               name='nombre'
               onChange={(event) => handleModelChange(index, event)}
             >
-              <option disabled>Seleccione</option>
+              <option>Seleccione</option>
               <option value='Generico'>Generico</option>
               <option value='14 Pro Max'>16 Pro Max</option>
               <option value='14 Pro Max'>16 Pro</option>
@@ -711,7 +711,7 @@ export default function Crear() {
               value={storage.capacidad}
               onChange={(event) => handleStorageChange(index, event)}
             >
-              <option disabled>Seleccione</option>
+              <option>Seleccione</option>
               <option value='64 GB'>64GB</option>
               <option value='128 GB'>128GB</option>
               <option value='256 GB'>256GB</option>
@@ -755,7 +755,7 @@ export default function Crear() {
               value={storage.estado}
               onChange={(event) => handleStorageChange(index, event)}
             >
-              <option disabled> Seleccione</option>
+              <option> Seleccione</option>
               <option value='nuevo'>Nuevo</option>
               <option value='swap'>Swap</option>
             </select>
