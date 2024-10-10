@@ -23,6 +23,7 @@ export default function Crear() {
   const [selectedImage, setSelectedImage] = useState(null);
   const [loading, setLoading] = useState(false);
   const [inputForm, setInputForm] = useState(initialFormState);
+  console.log(inputForm);
 
   function handleChange(e) {
     setInputForm({
@@ -198,16 +199,22 @@ export default function Crear() {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+    e.preventDefault(); // Prevenir recarga de página
 
     try {
+      // Envío de datos al backend
       await axios.post(
-        "https://backend-reino-production.up.railway.app/products",
+        "https://iphonecaseoberab-production.up.railway.app/products",
         inputForm
       );
+
+      // Mostrar éxito
       toast.success("Producto creado con éxito.");
+
+      // Resetear formulario solo si es exitoso
       setInputForm(initialFormState);
     } catch (error) {
+      // Manejar error
       toast.error("Error al crear el producto.");
     }
   };
