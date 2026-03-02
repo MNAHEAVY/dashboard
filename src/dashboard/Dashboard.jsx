@@ -1,23 +1,26 @@
 import logo from "../assets/logo.png";
 import Editar from "./Editar";
-import Crear from "./Crear";
 import Borrar from "./Borrar";
+import Crear from "./Crear";
+import Sells from "./Sells";
 import Productos from "./AllProducts";
 import Login from "./Login";
+import Users from "./AllUsers";
+import Banners from "./Banners";
 
 import { Disclosure, DisclosureButton, DisclosurePanel } from "@headlessui/react";
 import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline";
 import { useState } from "react";
-//import Users from "./AllUsers";
 
 const navigation = [
   { name: "Productos", component: "Productos" },
   { name: "Crear", component: "Crear" },
   { name: "Borrar", component: "Borrar" },
-  { name: "Valores", component: "Editar" },
-  // { name: "Usuarios", component: "Users" },
-  // { name: "Banners", component: "Users" },
-  // { name: "Ventas", component: "Users" },
+  { name: "Editar", component: "Editar" },
+  { name: "Valores", component: "valores" },
+  { name: "Usuarios", component: "Usuarios" },
+  { name: "Banners", component: "Banners" },
+  { name: "Ventas", component: "Ventas" },
 ];
 
 function classNames(...classes) {
@@ -43,12 +46,12 @@ export default function Dashboard() {
         return <Borrar />;
       case "Editar":
         return <Editar />;
-      // case "Usuarios":
-      //   return <Users />;
-      // case "Banners":
-      //   return <Users />;
-      // case "Ventas":
-      //   return <Users />;
+      case "Usuarios":
+        return <Users />;
+      case "Banners":
+        return <Banners />;
+      case "Ventas":
+        return <Sells />;
       default:
         return <Productos />;
     }
@@ -74,7 +77,7 @@ export default function Dashboard() {
                           selectedView === item.component
                             ? "bg-gray-900 text-white"
                             : "text-gray-300 hover:bg-gray-700 hover:text-white",
-                          "rounded-md px-3 py-2 text-sm font-medium"
+                          "rounded-md px-3 py-2 text-sm font-medium",
                         )}
                       >
                         {item.name}
@@ -118,7 +121,7 @@ export default function Dashboard() {
                     item.current
                       ? "bg-gray-900 text-white"
                       : "text-gray-300 hover:bg-gray-700 hover:text-white",
-                    "block rounded-md px-3 py-2 text-base font-medium"
+                    "block rounded-md px-3 py-2 text-base font-medium",
                   )}
                 >
                   {item.name}
