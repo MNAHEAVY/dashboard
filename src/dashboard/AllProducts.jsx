@@ -2,6 +2,14 @@ import { useState, useEffect } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
+function getDisplayPrice(producto) {
+  if (!producto?.variants?.length) return 0;
+
+  const prices = producto.variants.map((v) => Number(v?.price) || 0).filter((p) => p > 0);
+
+  return prices.length ? Math.min(...prices) : 0;
+}
+
 export default function Productos() {
   const [productos, setProductos] = useState([]);
   const [filteredProductos, setFilteredProductos] = useState([]);
@@ -12,11 +20,13 @@ export default function Productos() {
     const fetchProducts = async () => {
       try {
         const response = await fetch(
-          "https://iphonecaseoberab-production.up.railway.app/products"
+          "https://iphonecaseoberab-production.up.railway.app/products",
         );
+
         if (!response.ok) {
           throw new Error("Network response was not ok");
         }
+
         const data = await response.json();
         setProductos(data);
       } catch (error) {
@@ -30,9 +40,9 @@ export default function Productos() {
   useEffect(() => {
     const sortedProductos = productos
       .filter((producto) =>
-        producto.nombre.toLowerCase().includes(searchTerm.toLowerCase())
+        producto?.name?.toLowerCase().includes(searchTerm.toLowerCase()),
       )
-      .sort((a, b) => a.nombre.localeCompare(b.nombre));
+      .sort((a, b) => (a.name || "").localeCompare(b.name || ""));
 
     setFilteredProductos(sortedProductos);
   }, [searchTerm, productos]);
@@ -42,22 +52,58 @@ export default function Productos() {
   };
 
   const handleInputChange = (e, index, field) => {
-    const updatedValue =
-      field === "precioBase" ? parseFloat(e.target.value) : e.target.value;
-    const updatedProducts = [...productos];
-    updatedProducts[index] = { ...updatedProducts[index], [field]: updatedValue };
-    setProductos(updatedProducts);
+    const value = e.target.value;
+
+    setProductos((prev) => {
+      const updated = [...prev];
+      const current = { ...updated[index] };
+
+      if (field === "name" || field === "brand") {
+        current[field] = value;
+      }
+
+      if (field === "totalStock") {
+        current.totalStock = Number(value) || 0;
+      }
+
+      if (field === "displayPrice") {
+        const newPrice = Number(value) || 0;
+        current.variants = (current.variants || []).map((variant) => ({
+          ...variant,
+          price: newPrice,
+        }));
+      }
+
+      updated[index] = current;
+      return updated;
+    });
   };
 
   const handleSelectChange = (e, index, field) => {
-    const updatedProducts = [...productos];
-    updatedProducts[index][field] = e.target.value === "true";
-    setProductos(updatedProducts);
+    const boolValue = e.target.value === "true";
+
+    setProductos((prev) => {
+      const updated = [...prev];
+      updated[index] = {
+        ...updated[index],
+        [field]: boolValue,
+      };
+      return updated;
+    });
   };
 
   const updateProduct = async (id, updatedProduct) => {
-    console.log(JSON.stringify(updatedProduct));
     try {
+      const payload = {
+        ...updatedProduct,
+        totalStock:
+          updatedProduct.totalStock ??
+          (updatedProduct.variants || []).reduce(
+            (acc, variant) => acc + (Number(variant.stock) || 0),
+            0,
+          ),
+      };
+
       const response = await fetch(
         `https://iphonecaseoberab-production.up.railway.app/product/${id}`,
         {
@@ -65,21 +111,19 @@ export default function Productos() {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(updatedProduct),
-        }
+          body: JSON.stringify(payload),
+        },
       );
 
       if (response.ok) {
         toast.success("¡Producto actualizado!");
       } else {
-        toast.error("¡Fallo la actualizacion!");
+        toast.error("¡Falló la actualización!");
         throw new Error("Network response was not ok");
       }
 
       const result = await response.json();
       console.log("Product updated successfully:", result);
-      // Optionally, fetch the updated product list again
-      // fetchProducts();
     } catch (error) {
       console.error("Error updating product:", error);
     }
@@ -94,150 +138,153 @@ export default function Productos() {
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);
   };
+
   return (
     <div>
       <ToastContainer />
+
       <div className='mb-4 flex justify-center'>
         <input
           type='text'
           placeholder='Buscar por nombre...'
           value={searchTerm}
           onChange={handleSearchChange}
-          className=' p-2 border border-gray-300 rounded-md w-full max-w-sm'
+          className='w-full max-w-sm rounded-md border border-gray-300 p-2'
         />
       </div>
+
       <div className='overflow-x-auto'>
         <table className='w-full divide-y divide-gray-200'>
           <thead className='bg-gray-50'>
             <tr>
-              <th className='px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
+              <th className='px-3 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-500'>
                 Imagen
               </th>
-              <th className='px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
+              <th className='px-3 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-500'>
                 Nombre
               </th>
-              <th className='px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
+              <th className='px-3 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-500'>
                 Marca
               </th>
-              <th className='px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
+              <th className='px-3 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-500'>
                 Stock
               </th>
-              <th className='px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
+              <th className='px-3 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-500'>
                 Precio
               </th>
-              <th className='px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
+              <th className='px-3 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-500'>
                 Disponibilidad
               </th>
-              <th className='px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
+              <th className='px-3 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-500'>
                 Acción
               </th>
             </tr>
           </thead>
-          <tbody className='bg-white divide-y divide-gray-200'>
+
+          <tbody className='divide-y divide-gray-200 bg-white'>
             {filteredProductos.map((producto, index) => (
               <tr key={producto._id} className='text-sm'>
-                <td className='px-3 py-2 whitespace-nowrap'>
+                <td className='whitespace-nowrap px-3 py-2'>
                   <a
                     href={"/edit/" + producto._id}
                     target='_blank'
                     rel='noopener noreferrer'
                   >
                     <img
-                      alt={producto.nombre}
-                      src={producto.imagenGeneral?.[0]}
-                      className='h-10 w-10 rounded-full bg-gray-50'
+                      alt={producto.name}
+                      src={producto.images?.[0] || producto.variants?.[0]?.images?.[0]}
+                      className='h-10 w-10 rounded-full bg-gray-50 object-cover'
                     />
                   </a>
                 </td>
 
-                <td className='px-3 py-2 whitespace-nowrap'>
+                <td className='whitespace-nowrap px-3 py-2'>
                   {editingProductId === producto._id ? (
                     <input
                       type='text'
-                      value={producto.nombre}
-                      onChange={(e) => handleInputChange(e, index, "nombre")}
-                      className='w-28 text-sm font-semibold leading-5 text-gray-900 border-gray-300 rounded-md shadow-sm px-2 py-1'
+                      value={producto.name || ""}
+                      onChange={(e) => handleInputChange(e, index, "name")}
+                      className='w-40 rounded-md border-gray-300 px-2 py-1 text-sm font-semibold leading-5 text-gray-900 shadow-sm'
                     />
                   ) : (
                     <p className='text-sm font-semibold leading-5 text-gray-900'>
-                      {producto.nombre}
+                      {producto.name}
                     </p>
                   )}
                 </td>
 
-                <td className='px-3 py-2 whitespace-nowrap'>
+                <td className='whitespace-nowrap px-3 py-2'>
                   {editingProductId === producto._id ? (
                     <input
                       type='text'
-                      value={producto.marca}
-                      onChange={(e) => handleInputChange(e, index, "marca")}
-                      className='w-28 text-sm leading-5 text-gray-900 border-gray-300 rounded-md shadow-sm px-2 py-1'
+                      value={producto.brand || ""}
+                      onChange={(e) => handleInputChange(e, index, "brand")}
+                      className='w-28 rounded-md border-gray-300 px-2 py-1 text-sm leading-5 text-gray-900 shadow-sm'
                     />
                   ) : (
-                    <p className='text-sm leading-5 text-gray-900'>{producto.marca}</p>
+                    <p className='text-sm leading-5 text-gray-900'>{producto.brand}</p>
                   )}
                 </td>
 
-                <td className='px-3 py-2 whitespace-nowrap text-sm'>
-                  {" "}
+                <td className='whitespace-nowrap px-3 py-2 text-sm'>
                   {editingProductId === producto._id ? (
                     <input
                       type='number'
-                      value={producto.stockGeneral}
-                      onChange={(e) => handleInputChange(e, index, "stockGeneral")}
-                      className='w-12 text-sm leading-5 text-gray-900 border-gray-300 rounded-md shadow-sm px-2 py-1'
+                      value={producto.totalStock ?? 0}
+                      onChange={(e) => handleInputChange(e, index, "totalStock")}
+                      className='w-16 rounded-md border-gray-300 px-2 py-1 text-sm leading-5 text-gray-900 shadow-sm'
                     />
                   ) : (
                     <p className='text-sm leading-5 text-gray-900'>
-                      {producto.stockGeneral}
+                      {producto.totalStock ?? 0}
                     </p>
                   )}
                 </td>
 
-                <td className='px-3 py-2 whitespace-nowrap text-sm'>
+                <td className='whitespace-nowrap px-3 py-2 text-sm'>
                   {editingProductId === producto._id ? (
                     <input
                       type='number'
-                      value={producto.precioBase}
-                      onChange={(e) => handleInputChange(e, index, "precioBase")}
-                      className='w-24 text-sm leading-5 text-gray-900 border-gray-300 rounded-md shadow-sm px-2 py-1'
+                      value={getDisplayPrice(producto)}
+                      onChange={(e) => handleInputChange(e, index, "displayPrice")}
+                      className='w-24 rounded-md border-gray-300 px-2 py-1 text-sm leading-5 text-gray-900 shadow-sm'
                     />
                   ) : (
                     <p className='text-sm leading-5 text-gray-900'>
-                      ${producto.precioBase}
+                      ${getDisplayPrice(producto)}
                     </p>
                   )}
                 </td>
 
-                <td className='px-3 py-2 whitespace-nowrap text-sm'>
+                <td className='whitespace-nowrap px-3 py-2 text-sm'>
                   {editingProductId === producto._id ? (
                     <select
-                      value={producto.disponible}
-                      onChange={(e) => handleSelectChange(e, index, "disponible")}
-                      className='w-28 text-sm leading-5 text-gray-900 border-gray-300 rounded-md shadow-sm px-2 py-1'
+                      value={String(producto.available)}
+                      onChange={(e) => handleSelectChange(e, index, "available")}
+                      className='w-28 rounded-md border-gray-300 px-2 py-1 text-sm leading-5 text-gray-900 shadow-sm'
                     >
-                      <option disabled>Elige</option>
-                      <option value={true}>Si</option>
-                      <option value={false}>No</option>
+                      <option value='true'>Sí</option>
+                      <option value='false'>No</option>
                     </select>
                   ) : (
                     <p className='text-sm leading-5 text-gray-900'>
-                      {producto.disponible ? "Si" : "No"}
+                      {producto.available ? "Sí" : "No"}
                     </p>
                   )}
                 </td>
-                <td className='px-3 py-2 whitespace-nowrap'>
+
+                <td className='whitespace-nowrap px-3 py-2'>
                   {editingProductId === producto._id ? (
                     <button
                       onClick={() => handleSaveClick(producto._id)}
-                      className='text-xs bg-green-500 text-white px-2 py-1 rounded'
+                      className='rounded bg-green-500 px-2 py-1 text-xs text-white'
                     >
                       Guardar
                     </button>
                   ) : (
                     <button
                       onClick={() => handleEditClick(producto._id)}
-                      className='text-xs bg-blue-500 text-white px-2 py-1 rounded'
+                      className='rounded bg-blue-500 px-2 py-1 text-xs text-white'
                     >
                       Editar
                     </button>

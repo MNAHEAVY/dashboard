@@ -12,7 +12,7 @@ export default function Productos() {
     const fetchProducts = async () => {
       try {
         const response = await fetch(
-          "https://iphonecaseoberab-production.up.railway.app/products"
+          "https://iphonecaseoberab-production.up.railway.app/products",
         );
         if (!response.ok) {
           throw new Error("Network response was not ok");
@@ -30,7 +30,7 @@ export default function Productos() {
   useEffect(() => {
     const sortedProductos = productos
       .filter((producto) =>
-        producto.nombre.toLowerCase().includes(searchTerm.toLowerCase())
+        producto.nombre.toLowerCase().includes(searchTerm.toLowerCase()),
       )
       .sort((a, b) => a.nombre.localeCompare(b.nombre));
 
@@ -43,13 +43,13 @@ export default function Productos() {
         `https://iphonecaseoberab-production.up.railway.app/product/${id}`,
         {
           method: "DELETE", // Cambia el método a DELETE
-        }
+        },
       );
 
       if (response.ok) {
         toast.success("¡Producto borrado!");
         setProductos((prevProductos) =>
-          prevProductos.filter((producto) => producto._id !== id)
+          prevProductos.filter((producto) => producto._id !== id),
         );
       } else {
         toast.error("¡Error al borrar el producto!");
