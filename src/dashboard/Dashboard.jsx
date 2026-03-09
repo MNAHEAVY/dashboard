@@ -1,6 +1,5 @@
 import logo from "../assets/logo.png";
 import Editar from "./Editar";
-import Borrar from "./Borrar";
 import Crear from "./Crear";
 import Sells from "./Sells";
 import Productos from "./AllProducts";
@@ -15,9 +14,7 @@ import { useState } from "react";
 const navigation = [
   { name: "Productos", component: "Productos" },
   { name: "Crear", component: "Crear" },
-  { name: "Borrar", component: "Borrar" },
-  { name: "Editar", component: "Editar" },
-  { name: "Valores", component: "valores" },
+  { name: "Valores", component: "Editar" },
   { name: "Usuarios", component: "Usuarios" },
   { name: "Banners", component: "Banners" },
   { name: "Ventas", component: "Ventas" },
@@ -42,8 +39,6 @@ export default function Dashboard() {
         return <Productos />;
       case "Crear":
         return <Crear />;
-      case "Borrar":
-        return <Borrar />;
       case "Editar":
         return <Editar />;
       case "Usuarios":

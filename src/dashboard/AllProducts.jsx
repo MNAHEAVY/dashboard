@@ -10,7 +10,7 @@ function getDisplayPrice(producto) {
   return prices.length ? Math.min(...prices) : 0;
 }
 
-export default function Productos() {
+export default function Productos() { 
   const [productos, setProductos] = useState([]);
   const [filteredProductos, setFilteredProductos] = useState([]);
   const [editingProductId, setEditingProductId] = useState(null);
@@ -128,7 +128,28 @@ export default function Productos() {
       console.error("Error updating product:", error);
     }
   };
+  const deleteProduct = async (id) => {
+    try {
+      const response = await fetch(
+        `https://iphonecaseoberab-production.up.railway.app/product/${id}`,
+        {
+          method: "DELETE", // Cambia el método a DELETE
+        },
+      );
 
+      if (response.ok) {
+        toast.success("¡Producto borrado!");
+        setProductos((prevProductos) =>
+          prevProductos.filter((producto) => producto._id !== id),
+        );
+      } else {
+        toast.error("¡Error al borrar el producto!");
+        throw new Error("Network response was not ok");
+      }
+    } catch (error) {
+      console.error("Error deleting product:", error);
+    }
+  };
   const handleSaveClick = async (id) => {
     const updatedProduct = productos.find((p) => p._id === id);
     await updateProduct(id, updatedProduct);
@@ -138,7 +159,9 @@ export default function Productos() {
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);
   };
-
+  const handleDeleteClick = async (id) => {
+    await deleteProduct(id); // Llama a la función deleteProduct en lugar de updateProduct
+  };
   return (
     <div>
       <ToastContainer />
@@ -177,6 +200,9 @@ export default function Productos() {
               </th>
               <th className='px-3 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-500'>
                 Acción
+              </th>
+              <th className='px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
+                Borrar
               </th>
             </tr>
           </thead>
@@ -289,6 +315,14 @@ export default function Productos() {
                       Editar
                     </button>
                   )}
+                </td>
+                <td className='px-3 py-2 whitespace-nowrap'>
+                  <button
+                    onClick={() => handleDeleteClick(producto._id)}
+                    className='text-xs bg-red-500 text-white px-2 py-1 rounded'
+                  >
+                    Borrar
+                  </button>
                 </td>
               </tr>
             ))}

@@ -1,38 +1,144 @@
-import { useState, useEffect } from "react";
+"use client";
+
+import { useState, useEffect, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
+const API_BASE_URL = "https://iphonecaseoberab-production.up.railway.app";
+const CLOUD_NAME = "deqxuoyrc";
+const UPLOAD_PRESET = "bvtkpxxl";
+
+async function uploadToCloudinary(file) {
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("upload_preset", UPLOAD_PRESET);
+
+  const response = await axios.post(
+    `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`,
+    formData,
+  );
+
+  return response.data.secure_url;
+}
+
+function createEmptyVariant() {
+  return {
+    sku: "",
+    price: 0,
+    stock: 0,
+    available: true,
+    images: [],
+    attributes: {
+      color: "",
+      model: "",
+      storage: "",
+      size: "",
+    },
+  };
+}
+
+function getMinPrice(variants = []) {
+  const prices = variants.map((v) => Number(v?.price) || 0).filter((p) => p > 0);
+
+  return prices.length ? Math.min(...prices) : 0;
+}
+
+function getTotalStock(variants = []) {
+  return variants.reduce((acc, v) => acc + (Number(v?.stock) || 0), 0);
+}
+
+function getFirstImage(product) {
+  if (product?.images?.length) return product.images[0];
+  return product?.variants?.find((v) => v?.images?.length)?.images?.[0] || "";
+}
+
+function buildVariantLabel(variant) {
+  const attrs = variant?.attributes || {};
+  return [attrs.color, attrs.model, attrs.storage, attrs.size]
+    .filter(Boolean)
+    .join(" · ");
+}
+
 export default function ProdEdit() {
   const { id } = useParams();
+
   const [loading, setLoading] = useState(false);
-  const [prodEd, setProdEd] = useState({
-    imagenGeneral: [],
-    color: [],
-    modelo: [],
-    almacenamiento: [],
-  });
+  const [pageLoading, setPageLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState(null);
 
+  const [prodEd, setProdEd] = useState({
+    name: "",
+    brand: "",
+    category: "",
+    subCategory: "",
+    description: "",
+    images: [],
+    variants: [],
+    available: true,
+    seo: {
+      title: "",
+      description: "",
+    },
+    compatibleWith: [],
+  });
+
   useEffect(() => {
-    const fetchProducts = async () => {
+    const fetchProduct = async () => {
       try {
-        const response = await fetch(
-          `https://iphonecaseoberab-production.up.railway.app/product/${id}`
-        );
+        const response = await fetch(`${API_BASE_URL}/product/${id}`);
         if (!response.ok) {
           throw new Error("Network response was not ok");
         }
+
         const data = await response.json();
-        setProdEd(data);
+
+        setProdEd({
+          ...data,
+          images: data.images || [],
+          variants: data.variants || [],
+          seo: data.seo || { title: "", description: "" },
+          compatibleWith: data.compatibleWith || [],
+        });
       } catch (error) {
         console.error("Error fetching product:", error);
+        toast.error("Error al cargar el producto");
+      } finally {
+        setPageLoading(false);
       }
     };
 
-    fetchProducts();
+    fetchProduct();
   }, [id]);
+
+  const stats = useMemo(() => {
+    return {
+      totalStock: getTotalStock(prodEd.variants),
+      minPrice: getMinPrice(prodEd.variants),
+      variantsCount: prodEd.variants?.length || 0,
+    };
+  }, [prodEd.variants]);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setProdEd((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleSeoChange = (e) => {
+    const { name, value } = e.target;
+
+    setProdEd((prev) => ({
+      ...prev,
+      seo: {
+        ...prev.seo,
+        [name]: value,
+      },
+    }));
+  };
 
   const handleImageUpload = async (event) => {
     const file = event.target.files[0];
@@ -40,659 +146,589 @@ export default function ProdEdit() {
 
     setLoading(true);
 
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("upload_preset", "bvtkpxxl");
-
     try {
-      const res = await axios.post(
-        `https://api.cloudinary.com/v1_1/deqxuoyrc/image/upload`,
-        formData
-      );
-      setSelectedImage(res.data.secure_url); // ImagenGeneral subida exitosamente
+      const secureUrl = await uploadToCloudinary(file);
+      setSelectedImage(secureUrl);
     } catch (error) {
       console.error("Error uploading image:", error);
-      toast.error("Error al subir la imagenGeneral, intente de nuevo");
+      toast.error("Error al subir la imagen");
     } finally {
-      setLoading(false); // Finaliza el loading
+      setLoading(false);
     }
   };
 
   const addImageToProduct = () => {
-    if (selectedImage) {
-      setProdEd({
-        ...prodEd,
-        imagenGeneral: [...prodEd.imagenGeneral, selectedImage],
-      });
+    if (!selectedImage) return;
 
-      setSelectedImage(null);
+    setProdEd((prev) => ({
+      ...prev,
+      images: [...prev.images, selectedImage],
+    }));
+
+    setSelectedImage(null);
+  };
+
+  const removeImageFromProduct = (indexToRemove) => {
+    setProdEd((prev) => ({
+      ...prev,
+      images: prev.images.filter((_, index) => index !== indexToRemove),
+    }));
+  };
+
+  const handleVariantChange = (index, field, value) => {
+    setProdEd((prev) => {
+      const updatedVariants = [...prev.variants];
+      const currentVariant = { ...updatedVariants[index] };
+
+      currentVariant[field] =
+        field === "price" || field === "stock" ? Number(value) || 0 : value;
+
+      if (field === "stock") {
+        currentVariant.available = (Number(value) || 0) > 0;
+      }
+
+      updatedVariants[index] = currentVariant;
+
+      return {
+        ...prev,
+        variants: updatedVariants,
+      };
+    });
+  };
+
+  const handleVariantAttributeChange = (index, field, value) => {
+    setProdEd((prev) => {
+      const updatedVariants = [...prev.variants];
+      updatedVariants[index] = {
+        ...updatedVariants[index],
+        attributes: {
+          ...updatedVariants[index].attributes,
+          [field]: value,
+        },
+      };
+
+      return {
+        ...prev,
+        variants: updatedVariants,
+      };
+    });
+  };
+
+  const handleVariantImageUpload = async (index, event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    try {
+      const secureUrl = await uploadToCloudinary(file);
+
+      setProdEd((prev) => {
+        const updatedVariants = [...prev.variants];
+        const currentImages = updatedVariants[index].images || [];
+
+        updatedVariants[index] = {
+          ...updatedVariants[index],
+          images: [...currentImages, secureUrl],
+        };
+
+        return {
+          ...prev,
+          variants: updatedVariants,
+        };
+      });
+    } catch (error) {
+      console.error("Error uploading variant image:", error);
+      toast.error("Error al subir la imagen de la variante");
     }
   };
-  const removeImageFromProduct = (indexToRemove) => {
-    setProdEd({
-      ...prodEd,
-      imagenGeneral: prodEd.imagenGeneral.filter((_, index) => index !== indexToRemove),
+
+  const removeVariantImage = (variantIndex, imageIndex) => {
+    setProdEd((prev) => {
+      const updatedVariants = [...prev.variants];
+      const currentImages = updatedVariants[variantIndex].images || [];
+
+      updatedVariants[variantIndex] = {
+        ...updatedVariants[variantIndex],
+        images: currentImages.filter((_, i) => i !== imageIndex),
+      };
+
+      return {
+        ...prev,
+        variants: updatedVariants,
+      };
     });
   };
 
-  function handleChange(e) {
-    setProdEd({
-      ...prodEd,
-      [e.target.name]: e.target.value,
-    });
-  }
-
-  // Manejadores del color
-  const handleImageUploadColor = (index, e) => {
-    const file = e.target.files[0];
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("upload_preset", "bvtkpxxl");
-
-    axios
-      .post("https://api.cloudinary.com/v1_1/deqxuoyrc/upload", formData)
-      .then((response) => {
-        const imageUrl = response.data.secure_url;
-        handleColorChangeB(index, "imageColor", imageUrl);
-      })
-      .catch((error) => {
-        console.error("Error uploading image", error);
-      });
+  const handleAddVariant = () => {
+    setProdEd((prev) => ({
+      ...prev,
+      variants: [...prev.variants, createEmptyVariant()],
+    }));
   };
 
-  const handleColorChangeB = (index, name, value) => {
-    const newColor = [...prodEd.color];
-    newColor[index] = { ...newColor[index], [name]: value };
-    setProdEd({ ...prodEd, color: newColor });
+  const handleRemoveVariant = (index) => {
+    setProdEd((prev) => ({
+      ...prev,
+      variants: prev.variants.filter((_, i) => i !== index),
+    }));
   };
 
-  function handleColorChange(e, index) {
-    const updatedColors = [...prodEd.color];
-    updatedColors[index] = { ...updatedColors[index], [e.target.name]: e.target.value };
-    setProdEd({
-      ...prodEd,
-      color: updatedColors,
+  const handleDuplicateVariant = (index) => {
+    setProdEd((prev) => {
+      const source = prev.variants[index];
+      const duplicated = {
+        ...JSON.parse(JSON.stringify(source)),
+        _id: undefined,
+        sku: source?.sku ? `${source.sku}-COPY` : "",
+      };
+
+      const updatedVariants = [...prev.variants];
+      updatedVariants.splice(index + 1, 0, duplicated);
+
+      return {
+        ...prev,
+        variants: updatedVariants,
+      };
     });
-  }
-
-  function handleRemoveColor(index) {
-    const updatedColors = [...prodEd.color];
-    updatedColors.splice(index, 1);
-    setProdEd({
-      ...prodEd,
-      color: updatedColors,
-    });
-  }
-
-  function handleAddColor() {
-    setProdEd({
-      ...prodEd,
-      color: [...prodEd.color, { nombre: "", imageColor: "", stockColor: 0, estado: "" }],
-    });
-  }
-
-  // Manejadores del modelo
-  const handleImageUploadModel = (index, e) => {
-    const file = e.target.files[0];
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("upload_preset", "bvtkpxxl");
-
-    axios
-      .post("https://api.cloudinary.com/v1_1/deqxuoyrc/upload", formData)
-      .then((response) => {
-        const imageUrl = response.data.secure_url;
-        handleModelChangeB(index, "imageModel", imageUrl);
-      })
-      .catch((error) => {
-        console.error("Error uploading image", error);
-      });
   };
 
-  const handleModelChangeB = (index, name, value) => {
-    const newmodel = [...prodEd.modelo];
-    newmodel[index] = { ...newmodel[index], [name]: value };
-    setProdEd({ ...prodEd, modelo: newmodel });
-  };
-
-  function handleModelChange(e, index) {
-    const updatedmodels = [...prodEd.modelo];
-    updatedmodels[index] = { ...updatedmodels[index], [e.target.name]: e.target.value };
-    setProdEd({
-      ...prodEd,
-      modelo: updatedmodels,
-    });
-  }
-
-  function handleRemoveModel(index) {
-    const updatedmodels = [...prodEd.modelo];
-    updatedmodels.splice(index, 1);
-    setProdEd({
-      ...prodEd,
-      modelo: updatedmodels,
-    });
-  }
-
-  function handleAddModel() {
-    setProdEd({
-      ...prodEd,
-      modelo: [
-        ...prodEd.modelo,
-        { nombre: "", precio: 0, imageModel: "", stockModel: 0, estado: "" },
-      ],
-    });
-  }
-
-  // Manejadores del almacenamiento
-  function handleAlmacenamientoChange(e, index) {
-    const updatedAlmacenamientos = [...prodEd.almacenamiento];
-    updatedAlmacenamientos[index] = {
-      ...updatedAlmacenamientos[index],
-      [e.target.name]: e.target.value,
-    };
-    setProdEd({
-      ...prodEd,
-      almacenamiento: updatedAlmacenamientos,
-    });
-  }
-
-  function handleRemoveAlmacenamiento(index) {
-    const updatedAlmacenamientos = [...prodEd.almacenamiento];
-    updatedAlmacenamientos.splice(index, 1);
-    setProdEd({
-      ...prodEd,
-      almacenamiento: updatedAlmacenamientos,
-    });
-  }
-
-  function handleAddAlmacenamiento() {
-    setProdEd({
-      ...prodEd,
-      almacenamiento: [
-        ...prodEd.almacenamiento,
-        {
-          capacidad: "",
-          precio: 0,
-          stockStorage: 0,
-          disponible: false,
-          estado: "",
-        },
-      ],
-    });
-  }
-
-  // Función para actualizar el producto
-  const updateProduct = async (id, updatedProduct) => {
+  const updateProduct = async (productId, updatedProduct) => {
     try {
-      const response = await fetch(
-        `https://iphonecaseoberab-production.up.railway.app/product/${id}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
+      const normalizedVariants = (updatedProduct.variants || []).map((variant) => {
+        const stock = Number(variant.stock) || 0;
+
+        return {
+          ...variant,
+          price: Number(variant.price) || 0,
+          stock,
+          available: stock > 0,
+          images: variant.images || [],
+          attributes: {
+            color: variant.attributes?.color || "",
+            model: variant.attributes?.model || "",
+            storage: variant.attributes?.storage || "",
+            size: variant.attributes?.size || "",
           },
-          body: JSON.stringify(updatedProduct),
-        }
+        };
+      });
+
+      const totalStock = normalizedVariants.reduce(
+        (acc, variant) => acc + (Number(variant.stock) || 0),
+        0,
       );
 
-      if (response.ok) {
-        toast.success("¡Producto actualizado!");
-      } else {
-        toast.error("¡Fallo la actualización!");
+      const payload = {
+        ...updatedProduct,
+        images: updatedProduct.images || [],
+        variants: normalizedVariants,
+        totalStock,
+        available: totalStock > 0,
+      };
+
+      const response = await fetch(`${API_BASE_URL}/product/${productId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        toast.error("¡Falló la actualización!");
         throw new Error("Network response was not ok");
       }
 
       const result = await response.json();
-      console.log("Product updated successfully:", result);
+      setProdEd(result);
+      toast.success("¡Producto actualizado!");
     } catch (error) {
       console.error("Error updating product:", error);
     }
   };
 
-  async function handleSubmit(e) {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    await updateProduct(id, prodEd); // Llamamos a la función de actualización
+    await updateProduct(id, prodEd);
+  };
+
+  if (pageLoading) {
+    return (
+      <div className='mx-auto p-8 text-center'>
+        <ToastContainer />
+        <p>Cargando producto...</p>
+      </div>
+    );
   }
+
   return (
-    <div className='mx-auto p-4 bg-slate-200'>
+    <div className='mx-auto bg-slate-200 p-4'>
       <ToastContainer />
-      <div className='grid grid-cols-1 gap-4'>
-        <div>
-          <h3 className='text-center text-2xl font-semibold mb-6'>Editor de Productos</h3>
+
+      <div className='mb-6'>
+        <h3 className='text-center text-2xl font-semibold'>Editor de Productos</h3>
+      </div>
+
+      <div className='mb-6 grid grid-cols-1 gap-4 md:grid-cols-4'>
+        <div className='rounded-lg bg-white p-4 shadow-sm'>
+          <p className='text-sm text-gray-500'>Variantes</p>
+          <p className='text-2xl font-semibold text-gray-900'>{stats.variantsCount}</p>
+        </div>
+
+        <div className='rounded-lg bg-white p-4 shadow-sm'>
+          <p className='text-sm text-gray-500'>Stock total</p>
+          <p className='text-2xl font-semibold text-gray-900'>{stats.totalStock}</p>
+        </div>
+
+        <div className='rounded-lg bg-white p-4 shadow-sm'>
+          <p className='text-sm text-gray-500'>Precio mínimo</p>
+          <p className='text-2xl font-semibold text-gray-900'>${stats.minPrice}</p>
+        </div>
+
+        <div className='rounded-lg bg-white p-4 shadow-sm'>
+          <p className='text-sm text-gray-500'>Estado</p>
+          <p className='text-2xl font-semibold text-gray-900'>
+            {stats.totalStock > 0 ? "Disponible" : "Sin stock"}
+          </p>
         </div>
       </div>
-      <div className='flex flex-col px-6 pt-6 gap-3 items-center  '>
-        <label htmlFor='formFile' className='block font-medium py-2'>
-          Imagen/es del Producto
+
+      <div className='mb-6 flex flex-col items-center gap-3 px-6 pt-2'>
+        <label htmlFor='formFile' className='block py-2 font-medium'>
+          Imágenes generales del producto
         </label>
-        <div className='flex gap-3 items-center'>
+
+        <div className='flex items-center gap-3'>
           <input
-            className='block w-auto h-8 text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none'
+            className='block h-8 w-auto cursor-pointer rounded-lg border border-gray-300 bg-gray-50 text-sm text-gray-900 focus:outline-none'
             type='file'
             id='formFile'
             onChange={handleImageUpload}
           />
+
           <button
             type='button'
-            className='bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 px-4 rounded'
+            className='rounded bg-indigo-600 px-4 py-2 font-bold text-white hover:bg-indigo-500'
             onClick={addImageToProduct}
-            disabled={loading} // Deshabilitar el botón mientras carga
+            disabled={loading}
           >
-            {loading ? "Subiendo..." : "Agregar imagen al producto"}
+            {loading ? "Subiendo..." : "Agregar imagen"}
           </button>
         </div>
       </div>
 
-      {/* Galería de imágenes */}
-      <div className='flex flex-wrap justify-center items-center gap-4 mt-4 py-4'>
-        {prodEd?.imagenGeneral.map((imgUrl, index) => (
-          <div key={index} className='image-item'>
-            {" "}
+      <div className='mb-6 flex flex-wrap items-center justify-center gap-4 py-4'>
+        {prodEd?.images?.map((imgUrl, index) => (
+          <div key={index}>
             <img
-              key={index}
               src={imgUrl}
               alt='Uploaded'
-              className='w-[120px] h-[150px] object-cover border border-gray-300 rounded-lg'
-            />{" "}
+              className='h-[150px] w-[120px] rounded-lg border border-gray-300 object-cover'
+            />
             <button
+              type='button'
               onClick={() => removeImageFromProduct(index)}
-              className='top-4 right-4 flex items-center justify-center w-6 h-6 text-white rounded-full bg-red-600'
+              className='mt-1 flex h-6 w-6 items-center justify-center rounded-full bg-red-600 text-white'
             >
               X
             </button>
           </div>
         ))}
       </div>
-      <hr></hr>
-      <div className='flex mx-auto p-4'>
-        <div className='mx-auto'>
-          <form onSubmit={(e) => handleSubmit(e)} className='space-y-6'>
-            <div>
-              <label className='block font-medium'>*Categorias</label>
-              <select
-                className='w-full border border-gray-300 rounded-md p-2'
-                value={prodEd.categorias}
-                name='categorias'
-                onChange={(e) => handleChange(e)}
-              >
-                <option disabled>Elige</option>
-                <option value={"Iphone"}>iPhone</option>
-                <option value={"Accesorios"}>iPad</option>
-                <option value={"Watch"}>Mac</option>
-                <option value={"Airpods"}>AirPods</option>
-                <option value={"Baterias"}>Apple Watch</option>
-                <option value={"Modulos"}>Accesorios</option>
-                <option value={"Tapa trasera"}>Otros</option>
-              </select>
+
+      <div className='mx-auto flex p-4'>
+        <div className='mx-auto w-full max-w-6xl'>
+          <form onSubmit={handleSubmit} className='space-y-6'>
+            <div className='grid grid-cols-1 gap-4 rounded-lg bg-white p-6 shadow-sm md:grid-cols-2'>
+              <div>
+                <label className='block font-medium'>Categoría</label>
+                <select
+                  className='w-full rounded-md border border-gray-300 p-2'
+                  value={prodEd.category}
+                  name='category'
+                  onChange={handleChange}
+                >
+                  <option value=''>Elige</option>
+                  <option value='iphone'>iPhone</option>
+                  <option value='ipad'>iPad</option>
+                  <option value='mac'>Mac</option>
+                  <option value='watch'>Apple Watch</option>
+                  <option value='airpods'>AirPods</option>
+                  <option value='accessorios'>Accesorios</option>
+                  <option value='otros'>Otros</option>
+                </select>
+              </div>
+
+              <div>
+                <label className='block font-medium'>Subcategoría</label>
+                <input
+                  className='w-full rounded-md border border-gray-300 p-2'
+                  type='text'
+                  value={prodEd.subCategory || ""}
+                  name='subCategory'
+                  onChange={handleChange}
+                />
+              </div>
+
+              <div>
+                <label className='block font-medium'>Nombre</label>
+                <input
+                  className='w-full rounded-md border border-gray-300 p-2'
+                  type='text'
+                  value={prodEd.name || ""}
+                  name='name'
+                  onChange={handleChange}
+                />
+              </div>
+
+              <div>
+                <label className='block font-medium'>Marca</label>
+                <input
+                  className='w-full rounded-md border border-gray-300 p-2'
+                  type='text'
+                  value={prodEd.brand || ""}
+                  name='brand'
+                  onChange={handleChange}
+                />
+              </div>
+
+              <div className='md:col-span-2'>
+                <label className='block font-medium'>Descripción</label>
+                <textarea
+                  className='w-full rounded-md border border-gray-300 p-2'
+                  value={prodEd.description || ""}
+                  name='description'
+                  onChange={handleChange}
+                  rows={4}
+                />
+              </div>
+
+              <div>
+                <label className='block font-medium'>SEO Title</label>
+                <input
+                  className='w-full rounded-md border border-gray-300 p-2'
+                  type='text'
+                  value={prodEd.seo?.title || ""}
+                  name='title'
+                  onChange={handleSeoChange}
+                />
+              </div>
+
+              <div>
+                <label className='block font-medium'>SEO Description</label>
+                <textarea
+                  className='w-full rounded-md border border-gray-300 p-2'
+                  value={prodEd.seo?.description || ""}
+                  name='description'
+                  onChange={handleSeoChange}
+                  rows={3}
+                />
+              </div>
             </div>
 
-            <div>
-              <label className='block font-medium'>*Subcategoria</label>
-              <select
-                className='w-full border border-gray-300 rounded-md p-2'
-                value={prodEd.subCategoria}
-                name='subCategoria'
-                onChange={(e) => handleChange(e)}
-              >
-                <option disabled>Elige</option>
-                <option value={"iPhone 16"}>iPhone 16</option>
-                <option value={"iPhone 15"}>iPhone 15</option>
-                <option value={"iPhone 14"}>iPhone 14</option>
-                <option value={"iPhone SE"}>iPhone SE</option>
-                <option value={"iPhone 13"}>iPhone 13</option>
-                <option value={"iPad Pro"}>iPad Pro</option>
-                <option value={"iPad Air"}>iPad Air</option>
-                <option value={"iPad"}>iPad</option>
-                <option value={"iPad mini"}>iPad mini</option>
-                <option value={"MacBook Air"}>MacBook Air</option>
-                <option value={"MacBook Pro"}>MacBook Pro</option>
-                <option value={"iMac"}>iMac</option>
-                <option value={"Mac mini"}>Mac mini</option>
-                <option value={"Mac Studio"}>Mac Studio</option>
-                <option value={"Mac Pro"}>Mac Pro</option>
-                <option value={"Apple Watch Series 9"}>Apple Watch Series 9</option>
-                <option value={"Apple Watch Ultra"}>Apple Watch Ultra</option>
-                <option value={"Apple Watch SE"}>Apple Watch SE</option>
-                <option value={"AirPods Pro"}>AirPods Pro</option>
-                <option value={"AirPods (3ª generación)"}>AirPods (3ª generación)</option>
-                <option value={"AirPods Max"}>AirPods Max</option>
-                <option value={"Fundas"}>Fundas y protectores</option>
-                <option value={"Glass"}>Glass</option>
-                <option value={"Energia y Cables"}>Cargadores y adaptadores</option>
-                <option value={"Correas"}>Correas para Apple Watch</option>
-                <option value={"Teclados, ratones y trackpads"}>
-                  Teclados, ratones y trackpads
-                </option>
-                <option value={"AirTag"}>AirTag</option>{" "}
-              </select>
-            </div>
+            <div className='rounded-lg bg-white p-6 shadow-sm'>
+              <div className='mb-4 flex items-center justify-between'>
+                <strong className='text-lg'>Variantes</strong>
+                <button
+                  type='button'
+                  className='rounded-md bg-blue-500 px-4 py-2 text-white'
+                  onClick={handleAddVariant}
+                >
+                  Agregar variante
+                </button>
+              </div>
 
-            <div>
-              <label className='block font-medium'>Nombre</label>
-              <input
-                className='w-full border border-gray-300 rounded-md p-2'
-                type='text'
-                value={prodEd.nombre}
-                name='nombre'
-                onChange={(e) => handleChange(e)}
-              />
-            </div>
-
-            <div>
-              <label className='block font-medium'>Marca</label>
-              <input
-                className='w-full border border-gray-300 rounded-md p-2'
-                type='text'
-                value={prodEd.marca}
-                name='marca'
-                onChange={(e) => handleChange(e)}
-              />
-            </div>
-
-            <div>
-              <label className='block font-medium'>Descripcion</label>
-              <textarea
-                className='w-full border border-gray-300 rounded-md p-2'
-                value={prodEd.descripcion}
-                name='descripcion'
-                onChange={(e) => handleChange(e)}
-              ></textarea>
-            </div>
-
-            <div>
-              <label className='block font-medium'>*Stock General</label>
-              <input
-                className='w-full border border-gray-300 rounded-md p-2'
-                type='number'
-                value={prodEd.stockGeneral}
-                name='stockGeneral'
-                onChange={(e) => handleChange(e)}
-              />
-            </div>
-
-            <div>
-              <label className='block font-medium'>Estado</label>
-              <select
-                className='w-full border border-gray-300 rounded-md p-2'
-                value={prodEd.estado}
-                name='estado'
-                onChange={(e) => handleChange(e)}
-              >
-                <option disabled>Elige</option>
-                <option value={"nuevo"}>Nuevo</option>
-                <option value={"swap"}>Swap</option>
-              </select>
-            </div>
-
-            <div>
-              <label className='block font-medium'>Precio</label>
-              <input
-                className='w-full border border-gray-300 rounded-md p-2'
-                type='number'
-                value={prodEd.precioBase}
-                name='precioBase'
-                onChange={(e) => handleChange(e)}
-              />
-            </div>
-
-            <div>
-              <label className='block font-medium'>Disponible</label>
-              <select
-                className='w-full border border-gray-300 rounded-md p-2'
-                value={prodEd.disponible}
-                name='disponible'
-                onChange={(e) => handleChange(e)}
-              >
-                <option disabled>Elige</option>
-                <option value={true}>Si</option>
-                <option value={false}>No</option>
-              </select>
-            </div>
-
-            <div>
-              <label className='block font-medium'>Tipo</label>
-              <input
-                className='w-full border border-gray-300 rounded-md p-2'
-                type='text'
-                value={prodEd.tipo}
-                name='tipo'
-                onChange={(e) => handleChange(e)}
-              />
-            </div>
-            <hr></hr>
-            <div className='mb-6'>
-              <strong>Color/es</strong>
-              <div className='flex flex-wrap gap-4'>
-                {prodEd.color.length > 0 ? (
-                  prodEd.color.map((color, index) => (
+              <div className='flex flex-col gap-4'>
+                {prodEd.variants?.length > 0 ? (
+                  prodEd.variants.map((variant, index) => (
                     <div
-                      key={index}
-                      className='p-4 border border-gray-300 rounded-md w-auto'
+                      key={variant._id || index}
+                      className='rounded-md border border-gray-300 p-4'
                     >
-                      <label className='block font-medium'>Nombre</label>
-                      <input
-                        className='w-full border border-gray-300 rounded-md p-2'
-                        type='text'
-                        name='nombre'
-                        value={color.nombre}
-                        onChange={(e) => handleColorChange(e, index)}
-                      />
-                      <label className='block font-medium mt-2'>Imagen</label>
-                      <input
-                        type='file'
-                        className='w-full border border-gray-300 rounded-md p-2'
-                        onChange={(e) => handleImageUploadColor(index, e)}
-                      />
-                      {color.imageColor && (
-                        <img
-                          src={color.imageColor}
-                          alt='Uploaded'
-                          className='w-24 mt-2 rounded-md'
+                      <div className='mb-4 flex flex-col gap-2 md:flex-row md:items-center md:justify-between'>
+                        <div>
+                          <p className='font-semibold text-gray-900'>
+                            Variante {index + 1}
+                          </p>
+                          <p className='text-sm text-gray-500'>
+                            {buildVariantLabel(variant) || "Sin atributos definidos"}
+                          </p>
+                        </div>
+
+                        <div className='flex gap-2'>
+                          <button
+                            type='button'
+                            className='rounded bg-slate-700 px-3 py-2 text-sm text-white'
+                            onClick={() => handleDuplicateVariant(index)}
+                          >
+                            Duplicar
+                          </button>
+                          <button
+                            type='button'
+                            className='rounded bg-red-500 px-3 py-2 text-sm text-white'
+                            onClick={() => handleRemoveVariant(index)}
+                          >
+                            Eliminar
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3'>
+                        <div>
+                          <label className='block font-medium'>SKU</label>
+                          <input
+                            className='w-full rounded-md border border-gray-300 p-2'
+                            type='text'
+                            value={variant.sku || ""}
+                            onChange={(e) =>
+                              handleVariantChange(index, "sku", e.target.value)
+                            }
+                          />
+                        </div>
+
+                        <div>
+                          <label className='block font-medium'>Precio</label>
+                          <input
+                            className='w-full rounded-md border border-gray-300 p-2'
+                            type='number'
+                            value={variant.price || 0}
+                            onChange={(e) =>
+                              handleVariantChange(index, "price", e.target.value)
+                            }
+                          />
+                        </div>
+
+                        <div>
+                          <label className='block font-medium'>Stock</label>
+                          <input
+                            className='w-full rounded-md border border-gray-300 p-2'
+                            type='number'
+                            value={variant.stock || 0}
+                            onChange={(e) =>
+                              handleVariantChange(index, "stock", e.target.value)
+                            }
+                          />
+                        </div>
+
+                        <div>
+                          <label className='block font-medium'>Color</label>
+                          <input
+                            className='w-full rounded-md border border-gray-300 p-2'
+                            type='text'
+                            value={variant.attributes?.color || ""}
+                            onChange={(e) =>
+                              handleVariantAttributeChange(index, "color", e.target.value)
+                            }
+                          />
+                        </div>
+
+                        <div>
+                          <label className='block font-medium'>Modelo</label>
+                          <input
+                            className='w-full rounded-md border border-gray-300 p-2'
+                            type='text'
+                            value={variant.attributes?.model || ""}
+                            onChange={(e) =>
+                              handleVariantAttributeChange(index, "model", e.target.value)
+                            }
+                          />
+                        </div>
+
+                        <div>
+                          <label className='block font-medium'>Storage</label>
+                          <input
+                            className='w-full rounded-md border border-gray-300 p-2'
+                            type='text'
+                            value={variant.attributes?.storage || ""}
+                            onChange={(e) =>
+                              handleVariantAttributeChange(
+                                index,
+                                "storage",
+                                e.target.value,
+                              )
+                            }
+                          />
+                        </div>
+
+                        <div>
+                          <label className='block font-medium'>Size</label>
+                          <input
+                            className='w-full rounded-md border border-gray-300 p-2'
+                            type='text'
+                            value={variant.attributes?.size || ""}
+                            onChange={(e) =>
+                              handleVariantAttributeChange(index, "size", e.target.value)
+                            }
+                          />
+                        </div>
+
+                        <div>
+                          <label className='block font-medium'>Disponible</label>
+                          <select
+                            className='w-full rounded-md border border-gray-300 p-2'
+                            value={String(variant.available)}
+                            onChange={(e) =>
+                              handleVariantChange(
+                                index,
+                                "available",
+                                e.target.value === "true",
+                              )
+                            }
+                          >
+                            <option value='true'>Sí</option>
+                            <option value='false'>No</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      <div className='mt-4'>
+                        <label className='block font-medium'>Imagen de variante</label>
+                        <input
+                          type='file'
+                          className='w-full rounded-md border border-gray-300 p-2'
+                          onChange={(e) => handleVariantImageUpload(index, e)}
                         />
-                      )}
-                      <label className='block font-medium mt-2'>Stock</label>
-                      <input
-                        className='w-full border border-gray-300 rounded-md p-2'
-                        type='number'
-                        name='stockColor'
-                        value={color.stockColor}
-                        onChange={(e) => handleColorChange(e, index)}
-                      />
-                      <label className='block font-medium mt-2'>Estado</label>
-                      <select
-                        className='w-full border border-gray-300 rounded-md p-2'
-                        name='estado'
-                        value={color.estado}
-                        onChange={(e) => handleColorChange(e, index)}
-                      >
-                        <option disabled>Elige</option>
-                        <option value={"nuevo"}>Nuevo</option>
-                        <option value={"swap"}>Swap</option>
-                      </select>
-                      <button
-                        className='mt-4 px-4 py-2 bg-red-500 text-white rounded-md'
-                        onClick={() => handleRemoveColor(index)}
-                      >
-                        Eliminar
-                      </button>
+                      </div>
+
+                      <div className='mt-4 flex flex-wrap gap-3'>
+                        {(variant.images || []).map((img, imageIndex) => (
+                          <div key={imageIndex}>
+                            <img
+                              src={img}
+                              alt='Variant'
+                              className='h-24 w-24 rounded-md object-cover'
+                            />
+                            <button
+                              type='button'
+                              className='mt-1 rounded bg-red-500 px-2 py-1 text-xs text-white'
+                              onClick={() => removeVariantImage(index, imageIndex)}
+                            >
+                              Quitar imagen
+                            </button>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   ))
                 ) : (
-                  <p>No hay colores disponibles</p>
+                  <p>No hay variantes disponibles</p>
                 )}
               </div>
-              <button
-                className='mt-6 px-4 py-2 bg-blue-500 text-white rounded-md'
-                onClick={handleAddColor}
-              >
-                Agregar Color
-              </button>
             </div>
-            <hr></hr>
-            <div className='mb-6'>
-              <strong>Modelo/s</strong>
-              <div className='flex flex-wrap gap-4'>
-                {prodEd.modelo.length > 0 ? (
-                  prodEd.modelo.map((model, index) => (
-                    <div key={index} className='p-4 border border-gray-300 rounded-md'>
-                      <label className='block font-medium'>Nombre</label>
-                      <input
-                        className='w-full border border-gray-300 rounded-md p-2'
-                        type='text'
-                        name='nombre'
-                        value={model.nombre}
-                        onChange={(e) => handleModelChange(e, index)}
-                      />
-                      <label className='block font-medium mt-2'>Precio</label>
-                      <input
-                        className='w-full border border-gray-300 rounded-md p-2'
-                        type='number'
-                        name='precio'
-                        value={model.precio}
-                        onChange={(e) => handleModelChange(e, index)}
-                      />
-                      <label className='block font-medium mt-2'>Stock</label>
-                      <input
-                        className='w-full border border-gray-300 rounded-md p-2'
-                        type='number'
-                        name='stockModel'
-                        value={model.stockModel}
-                        onChange={(e) => handleModelChange(e, index)}
-                      />
-                      <label className='block font-medium mt-2'>Disponible</label>
-                      <select
-                        className='w-full border border-gray-300 rounded-md p-2'
-                        name='disponible'
-                        value={model.disponible}
-                        onChange={(e) => handleModelChange(e, index)}
-                      >
-                        <option disabled>Elige</option>
-                        <option value={true}>Si</option>
-                        <option value={false}>No</option>
-                      </select>
-                      <label className='block font-medium mt-2'>Imagen</label>
-                      <input
-                        type='file'
-                        className='w-full border border-gray-300 rounded-md p-2'
-                        onChange={(e) => handleImageUploadModel(index, e)}
-                      />
-                      {model.imageModel && (
-                        <img
-                          src={model.imageModel}
-                          alt='Uploaded'
-                          className='w-24 mt-2 rounded-md'
-                        />
-                      )}
-                      <button
-                        className='mt-4 px-4 py-2 bg-red-500 text-white rounded-md'
-                        onClick={() => handleRemoveModel(index)}
-                      >
-                        Eliminar
-                      </button>
-                    </div>
-                  ))
-                ) : (
-                  <p>No hay modelos disponibles</p>
-                )}
-              </div>
-              <button
-                className='mt-6 px-4 py-2 bg-blue-500 text-white rounded-md'
-                onClick={handleAddModel}
-              >
-                Agregar Modelo
-              </button>
-            </div>
-            <hr></hr>
-            <div className='mb-6'>
-              <strong>Almacenamiento/s</strong>
-              <div className='flex flex-wrap gap-4'>
-                {prodEd.almacenamiento.length > 0 ? (
-                  prodEd.almacenamiento.map((almacenamiento, index) => (
-                    <div key={index} className='p-4 border border-gray-300 rounded-md'>
-                      <label className='block font-medium'>Capacidad</label>
-                      <select
-                        className='w-full border border-gray-300 rounded-md p-2'
-                        name='capacidad'
-                        value={almacenamiento.capacidad}
-                        onChange={(e) => handleAlmacenamientoChange(e, index)}
-                      >
-                        <option disabled>Seleccione</option>
-                        <option value='64 GB'>64GB</option>
-                        <option value='128 GB'>128GB</option>
-                        <option value='256 GB'>256GB</option>
-                        <option value='512 GB'>512GB</option>
-                        <option value='1024 GB'>1024GB</option>
-                      </select>
 
-                      <label className='block font-medium mt-2'>Precio</label>
-                      <input
-                        className='w-full border border-gray-300 rounded-md p-2'
-                        type='number'
-                        name='precio'
-                        value={almacenamiento.precio}
-                        onChange={(e) => handleAlmacenamientoChange(e, index)}
-                      />
-
-                      <label className='block font-medium mt-2'>Stock</label>
-                      <input
-                        className='w-full border border-gray-300 rounded-md p-2'
-                        type='number'
-                        name='stockStorage'
-                        value={almacenamiento.stockStorage}
-                        onChange={(e) => handleAlmacenamientoChange(e, index)}
-                      />
-
-                      <label className='block font-medium mt-2'>Disponible</label>
-                      <select
-                        className='w-full border border-gray-300 rounded-md p-2'
-                        name='disponible'
-                        value={almacenamiento.disponible}
-                        onChange={(e) => handleAlmacenamientoChange(e, index)}
-                      >
-                        <option disabled>Elige</option>
-                        <option value={true}>Si</option>
-                        <option value={false}>No</option>
-                      </select>
-
-                      <label className='block font-medium mt-2'>Estado</label>
-                      <select
-                        className='w-full border border-gray-300 rounded-md p-2'
-                        name='estado'
-                        value={almacenamiento.estado}
-                        onChange={(e) => handleAlmacenamientoChange(e, index)}
-                      >
-                        <option disabled>Elige</option>
-                        <option value={"nuevo"}>Nuevo</option>
-                        <option value={"swap"}>Swap</option>
-                      </select>
-
-                      <button
-                        className='mt-4 px-4 py-2 bg-red-500 text-white rounded-md'
-                        onClick={() => handleRemoveAlmacenamiento(index)}
-                      >
-                        Eliminar
-                      </button>
-                    </div>
-                  ))
-                ) : (
-                  <p>No hay almacenamientos disponibles</p>
-                )}
-              </div>
-
-              <button
-                className='mt-6 px-4 py-2 bg-blue-500 text-white rounded-md'
-                onClick={handleAddAlmacenamiento}
-              >
-                Agregar almacenamiento
-              </button>
-            </div>
-            <hr></hr>
             <div className='mt-6 flex items-center justify-end gap-x-6'>
+              <a
+                href={getFirstImage(prodEd) || "#"}
+                target='_blank'
+                rel='noopener noreferrer'
+                className='rounded-md bg-slate-700 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-slate-600'
+              >
+                Ver imagen principal
+              </a>
+
               <button
-                className='rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600'
+                className='rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500'
                 type='submit'
               >
-                Modificar
+                Guardar cambios
               </button>
             </div>
           </form>

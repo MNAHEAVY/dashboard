@@ -786,7 +786,7 @@
 
 import axios from "axios";
 import "react-toastify/dist/ReactToastify.css";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { ToastContainer, toast } from "react-toastify";
 
 const API_BASE_URL = "https://iphonecaseoberab-production.up.railway.app";
@@ -840,11 +840,24 @@ export default function Crear() {
     colors: [{ nombre: "", imageColor: "", stockColor: 0, estado: "nuevo" }],
     storages: [],
     models: [],
+
+    variants: [],
   };
 
   const [selectedImage, setSelectedImage] = useState(null);
   const [loading, setLoading] = useState(false);
   const [inputForm, setInputForm] = useState(initialFormState);
+
+  function buildCompatibleWith(variants) {
+    const models = [
+      ...new Set(variants.map((v) => v?.attributes?.model).filter(Boolean)),
+    ];
+
+    return models.map((model) => ({
+      device: model,
+      type: "iphone",
+    }));
+  }
 
   function handleChange(e) {
     const { name, value } = e.target;
@@ -909,6 +922,33 @@ export default function Crear() {
     return response.data.secure_url;
   };
 
+  const handleVariantImageChange = (index, imageUrl) => {
+    setInputForm((prev) => {
+      const updatedVariants = [...prev.variants];
+      updatedVariants[index] = {
+        ...updatedVariants[index],
+        images: imageUrl ? [imageUrl] : [],
+      };
+
+      return {
+        ...prev,
+        variants: updatedVariants,
+      };
+    });
+  };
+
+  const handleVariantImageUpload = async (index, event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    try {
+      const imageUrl = await uploadCloudinaryImage(file);
+      handleVariantImageChange(index, imageUrl);
+    } catch (error) {
+      console.error("Error uploading image", error);
+      toast.error("Error al subir imagen de variante");
+    }
+  };
   const handleColorChange = (index, event) => {
     const { name, value } = event.target;
 
@@ -1051,8 +1091,33 @@ export default function Crear() {
       storages: prev.storages.filter((_, i) => i !== index),
     }));
   };
+  const addManualVariant = () => {
+    setInputForm((prev) => ({
+      ...prev,
+      variants: [
+        ...prev.variants,
+        {
+          sku: buildSku({
+            name: prev.name,
+            index: prev.variants.length,
+          }),
+          price: Number(prev.basePrice) || 0,
+          stock: Number(prev.baseStock) || 0,
+          attributes: {
+            color: "",
+            model: "",
+            storage: "",
+          },
+          images: prev.images?.length ? [prev.images[0]] : [],
+          available: (Number(prev.baseStock) || 0) > 0,
+        },
+      ],
+    }));
 
-  const generatedVariants = useMemo(() => {
+    toast.success("Variante manual agregada.");
+  };
+
+  const generateVariants = () => {
     const cleanColors = inputForm.colors.filter((c) => normalizeText(c.nombre));
     const cleanModels = inputForm.models.filter((m) => normalizeText(m.nombre));
     const cleanStorages = inputForm.storages.filter((s) => normalizeText(s.capacidad));
@@ -1259,14 +1324,64 @@ export default function Crear() {
       });
     }
 
-    return variants;
-  }, [inputForm]);
+    setInputForm((prev) => ({
+      ...prev,
+      variants,
+    }));
+
+    toast.success("Variantes generadas.");
+  };
+  const handleVariantChange = (index, field, value) => {
+    setInputForm((prev) => {
+      const updatedVariants = [...prev.variants];
+      const current = { ...updatedVariants[index] };
+
+      current[field] =
+        field === "price" || field === "stock" ? Number(value) || 0 : value;
+
+      if (field === "stock") {
+        current.available = (Number(value) || 0) > 0;
+      }
+
+      updatedVariants[index] = current;
+
+      return {
+        ...prev,
+        variants: updatedVariants,
+      };
+    });
+  };
+
+  const handleVariantAttributeChange = (index, field, value) => {
+    setInputForm((prev) => {
+      const updatedVariants = [...prev.variants];
+      updatedVariants[index] = {
+        ...updatedVariants[index],
+        attributes: {
+          ...updatedVariants[index].attributes,
+          [field]: value,
+        },
+      };
+
+      return {
+        ...prev,
+        variants: updatedVariants,
+      };
+    });
+  };
+
+  const removeVariant = (index) => {
+    setInputForm((prev) => ({
+      ...prev,
+      variants: prev.variants.filter((_, i) => i !== index),
+    }));
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
-      const totalStock = generatedVariants.reduce(
+      const totalStock = inputForm.variants.reduce(
         (acc, variant) => acc + (Number(variant.stock) || 0),
         0,
       );
@@ -1279,10 +1394,10 @@ export default function Crear() {
         subCategory: normalizeText(inputForm.subCategory).toLowerCase(),
         description: normalizeText(inputForm.description),
         images: inputForm.images,
-        variants: generatedVariants,
+        variants: inputForm.variants,
         totalStock,
         available: totalStock > 0,
-        compatibleWith: buildCompatibleWith(generatedVariants),
+        compatibleWith: buildCompatibleWith(inputForm.variants),
         seo: {
           title: normalizeText(inputForm.name),
           description: normalizeText(inputForm.description).slice(0, 150),
@@ -1388,14 +1503,24 @@ export default function Crear() {
                   SubCategoría
                 </label>
                 <div className='mt-2'>
-                  <input
+                  <select
                     type='text'
                     name='subCategory'
                     value={inputForm.subCategory}
                     onChange={handleChange}
-                    placeholder='Por ej. cases, glass, cargadores'
-                    className='block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-indigo-600 sm:text-sm'
-                  />
+                    className='block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset focus:ring-2 focus:ring-indigo-600 sm:text-sm'
+                  >
+                    <option value=''>Elige</option>
+                    <option value='iphone'>Smartphone</option>
+                    <option value='ipad'>iPad</option>
+                    <option value='mac'>Mac</option>
+                    <option value='airpods'>AirPods</option>
+                    <option value='watch'>Apple Watch</option>
+                    <option value='watch'>Fundas</option>
+                    <option value='accessorios'>Energia y cables</option>
+                    <option value='accessorios'>Glass</option>
+                    <option value='otros'>Otros</option>
+                  </select>
                 </div>
               </div>
 
@@ -1671,17 +1796,137 @@ export default function Crear() {
         </button>
 
         <div className='mt-8 rounded border border-gray-200 bg-gray-50 p-4'>
-          <h3 className='font-semibold text-gray-900'>Vista previa</h3>
+          <div className='flex items-center justify-between gap-3 flex-wrap'>
+            <h3 className='font-semibold text-gray-900'>Variantes</h3>
+
+            <div className='flex gap-2 flex-wrap'>
+              <button
+                type='button'
+                onClick={generateVariants}
+                className='rounded bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-500'
+              >
+                Generar variantes
+              </button>
+
+              <button
+                type='button'
+                onClick={addManualVariant}
+                className='rounded bg-slate-700 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-600'
+              >
+                Agregar variante manual
+              </button>
+            </div>
+          </div>
+
           <p className='mt-2 text-sm text-gray-600'>
-            Variantes generadas: {generatedVariants.length}
+            Variantes creadas: {inputForm.variants.length}
           </p>
           <p className='text-sm text-gray-600'>
             Stock total:{" "}
-            {generatedVariants.reduce(
+            {inputForm.variants.reduce(
               (acc, variant) => acc + (Number(variant.stock) || 0),
               0,
             )}
           </p>
+
+          <div className='mt-4 space-y-4'>
+            {inputForm.variants.map((variant, index) => (
+              <div key={index} className='rounded border border-gray-300 bg-white p-4'>
+                <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-5'>
+                  <div>
+                    <label className='block text-sm font-medium'>SKU</label>
+                    <input
+                      className='w-full rounded border border-gray-300 p-2'
+                      value={variant.sku || ""}
+                      onChange={(e) => handleVariantChange(index, "sku", e.target.value)}
+                    />
+                  </div>
+
+                  <div>
+                    <label className='block text-sm font-medium'>Color</label>
+                    <input
+                      className='w-full rounded border border-gray-300 p-2'
+                      value={variant.attributes?.color || ""}
+                      onChange={(e) =>
+                        handleVariantAttributeChange(index, "color", e.target.value)
+                      }
+                    />
+                  </div>
+
+                  <div>
+                    <label className='block text-sm font-medium'>Modelo</label>
+                    <input
+                      className='w-full rounded border border-gray-300 p-2'
+                      value={variant.attributes?.model || ""}
+                      onChange={(e) =>
+                        handleVariantAttributeChange(index, "model", e.target.value)
+                      }
+                    />
+                  </div>
+
+                  <div>
+                    <label className='block text-sm font-medium'>Storage</label>
+                    <input
+                      className='w-full rounded border border-gray-300 p-2'
+                      value={variant.attributes?.storage || ""}
+                      onChange={(e) =>
+                        handleVariantAttributeChange(index, "storage", e.target.value)
+                      }
+                    />
+                  </div>
+
+                  <div>
+                    <label className='block text-sm font-medium'>Precio</label>
+                    <input
+                      type='number'
+                      className='w-full rounded border border-gray-300 p-2'
+                      value={variant.price || 0}
+                      onChange={(e) =>
+                        handleVariantChange(index, "price", e.target.value)
+                      }
+                    />
+                  </div>
+
+                  <div>
+                    <label className='block text-sm font-medium'>Stock</label>
+                    <input
+                      type='number'
+                      className='w-full rounded border border-gray-300 p-2'
+                      value={variant.stock || 0}
+                      onChange={(e) =>
+                        handleVariantChange(index, "stock", e.target.value)
+                      }
+                    />
+                  </div>
+                  <div>
+                    <label className='block text-sm font-medium'>Imagen</label>
+                    <input
+                      type='file'
+                      className='w-full rounded border border-gray-300 p-2'
+                      onChange={(e) => handleVariantImageUpload(index, e)}
+                    />
+
+                    {variant.images?.[0] && (
+                      <img
+                        src={variant.images[0]}
+                        alt='Variante'
+                        className='mt-2 h-20 w-20 rounded object-cover border'
+                      />
+                    )}
+                  </div>
+                  <div className='lg:col-span-4 flex items-end'>
+                    <button
+                      type='button'
+                      onClick={() => removeVariant(index)}
+                      className='rounded bg-red-500 px-3 py-2 text-sm text-white hover:bg-red-600'
+                    >
+                      Eliminar variante
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
 
         <div className='mt-6 flex items-center justify-end gap-x-6'>

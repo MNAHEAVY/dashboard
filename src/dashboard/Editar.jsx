@@ -10,7 +10,7 @@ export default function Values() {
     const fetchValues = async () => {
       try {
         const response = await fetch(
-          "https://iphonecaseoberab-production.up.railway.app/values"
+          "https://iphonecaseoberab-production.up.railway.app/values",
         );
         if (!response.ok) {
           throw new Error("Network response was not ok");
@@ -39,7 +39,7 @@ export default function Values() {
             "Content-Type": "application/json",
           },
           body: JSON.stringify(updatedValues),
-        }
+        },
       );
 
       if (response.ok) {
@@ -83,9 +83,6 @@ export default function Values() {
               </th>
               <th className='px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
                 profit
-              </th>
-              <th className='px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
-                obercoins
               </th>
               <th className='px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
                 mp
@@ -153,18 +150,6 @@ export default function Values() {
                   />
                 ) : (
                   <p className='text-sm leading-5 text-gray-900'>{values.profit}</p>
-                )}
-              </td>
-              <td className='px-3 py-2 whitespace-nowrap'>
-                {editingValuesId === values._id ? (
-                  <input
-                    type='number'
-                    value={values.obercoins}
-                    onChange={(e) => handleInputChange(e, "obercoins")}
-                    className='w-16 text-sm leading-5 text-gray-900 border-gray-300 rounded-md shadow-sm px-2 py-1'
-                  />
-                ) : (
-                  <p className='text-sm leading-5 text-gray-900'>{values.obercoins}</p>
                 )}
               </td>
               <td className='px-3 py-2 whitespace-nowrap'>
