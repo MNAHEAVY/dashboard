@@ -52,45 +52,49 @@ export default function Productos() {
     setEditingProductId(id);
   };
 
-  const handleInputChange = (e, index, field) => {
+  const handleInputChange = (e, productId, field) => {
     const value = e.target.value;
 
-    setProductos((prev) => {
-      const updated = [...prev];
-      const current = { ...updated[index] };
+    setProductos((prev) =>
+      prev.map((product) => {
+        if (product._id !== productId) return product;
 
-      if (field === "name" || field === "brand") {
-        current[field] = value;
-      }
+        const updatedProduct = { ...product };
 
-      if (field === "totalStock") {
-        current.totalStock = Number(value) || 0;
-      }
+        if (field === "name" || field === "brand") {
+          updatedProduct[field] = value;
+        }
 
-      if (field === "displayPrice") {
-        const newPrice = Number(value) || 0;
-        current.variants = (current.variants || []).map((variant) => ({
-          ...variant,
-          price: newPrice,
-        }));
-      }
+        if (field === "totalStock") {
+          updatedProduct.totalStock = Number(value) || 0;
+        }
 
-      updated[index] = current;
-      return updated;
-    });
+        if (field === "displayPrice") {
+          const newPrice = Number(value) || 0;
+          updatedProduct.variants = (updatedProduct.variants || []).map((variant) => ({
+            ...variant,
+            price: newPrice,
+          }));
+        }
+
+        return updatedProduct;
+      }),
+    );
   };
 
-  const handleSelectChange = (e, index, field) => {
+  const handleSelectChange = (e, productId, field) => {
     const boolValue = e.target.value === "true";
 
-    setProductos((prev) => {
-      const updated = [...prev];
-      updated[index] = {
-        ...updated[index],
-        [field]: boolValue,
-      };
-      return updated;
-    });
+    setProductos((prev) =>
+      prev.map((product) =>
+        product._id === productId
+          ? {
+              ...product,
+              [field]: boolValue,
+            }
+          : product,
+      ),
+    );
   };
 
   const updateProduct = async (id, updatedProduct) => {
@@ -188,6 +192,9 @@ export default function Productos() {
                 Nombre
               </th>
               <th className='px-3 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-500'>
+                Subcategoria
+              </th>
+              <th className='px-3 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-500'>
                 Marca
               </th>
               <th className='px-3 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-500'>
@@ -226,12 +233,26 @@ export default function Productos() {
                     <input
                       type='text'
                       value={producto.name || ""}
-                      onChange={(e) => handleInputChange(e, index, "name")}
+                      onChange={(e) => handleInputChange(e, producto._id, "name")}
                       className='w-40 rounded-md border-gray-300 px-2 py-1 text-sm font-semibold leading-5 text-gray-900 shadow-sm'
                     />
                   ) : (
                     <p className='text-sm font-semibold leading-5 text-gray-900'>
                       {producto.name}
+                    </p>
+                  )}
+                </td>
+                <td className='whitespace-nowrap px-3 py-2'>
+                  {editingProductId === producto._id ? (
+                    <input
+                      type='text'
+                      value={producto.subCategory || ""}
+                      onChange={(e) => handleInputChange(e, producto._id, "subCategory")}
+                      className='w-40 rounded-md border-gray-300 px-2 py-1 text-sm font-semibold leading-5 text-gray-900 shadow-sm'
+                    />
+                  ) : (
+                    <p className='text-sm font-semibold leading-5 text-gray-900'>
+                      {producto.subCategory}
                     </p>
                   )}
                 </td>
@@ -241,7 +262,7 @@ export default function Productos() {
                     <input
                       type='text'
                       value={producto.brand || ""}
-                      onChange={(e) => handleInputChange(e, index, "brand")}
+                      onChange={(e) => handleInputChange(e, producto._id, "brand")}
                       className='w-28 rounded-md border-gray-300 px-2 py-1 text-sm leading-5 text-gray-900 shadow-sm'
                     />
                   ) : (
@@ -253,8 +274,6 @@ export default function Productos() {
                   {editingProductId === producto._id ? (
                     <input
                       type='number'
-                      value={producto.totalStock ?? 0}
-                      onChange={(e) => handleInputChange(e, index, "totalStock")}
                       className='w-16 rounded-md border-gray-300 px-2 py-1 text-sm leading-5 text-gray-900 shadow-sm'
                     />
                   ) : (
@@ -269,7 +288,7 @@ export default function Productos() {
                     <input
                       type='number'
                       value={getDisplayPrice(producto)}
-                      onChange={(e) => handleInputChange(e, index, "displayPrice")}
+                      onChange={(e) => handleInputChange(e, producto._id, "displayPrice")}
                       className='w-24 rounded-md border-gray-300 px-2 py-1 text-sm leading-5 text-gray-900 shadow-sm'
                     />
                   ) : (
@@ -283,7 +302,7 @@ export default function Productos() {
                   {editingProductId === producto._id ? (
                     <select
                       value={String(producto.available)}
-                      onChange={(e) => handleSelectChange(e, index, "available")}
+                      onChange={(e) => handleSelectChange(e, producto._id, "available")}
                       className='w-28 rounded-md border-gray-300 px-2 py-1 text-sm leading-5 text-gray-900 shadow-sm'
                     >
                       <option value='true'>Sí</option>

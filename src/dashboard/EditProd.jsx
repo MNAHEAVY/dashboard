@@ -7,12 +7,12 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 const API_BASE_URL = "https://iphonecaseoberab-production.up.railway.app";
-const CLOUD_NAME = "deqxuoyrc";
-const UPLOAD_PRESET = "bvtkpxxl";
+const CLOUD_NAME = "ds19bznoo";
+const UPLOAD_PRESET = "iphonecase";
 
 async function uploadToCloudinary(file) {
   const formData = new FormData();
-  formData.append("file", file);
+  formData.append("file", file); 
   formData.append("upload_preset", UPLOAD_PRESET);
 
   const response = await axios.post(

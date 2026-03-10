@@ -2,8 +2,8 @@ import axios from "axios";
 import { useEffect, useState } from "react";
 
 const API_BASE_URL = "https://iphonecaseoberab-production.up.railway.app";
-const CLOUD_NAME = "deqxuoyrc";
-const UPLOAD_PRESET = "bvtkpxxl";
+const CLOUD_NAME = "ds19bznoo";
+const UPLOAD_PRESET = "iphonecase";
 
 async function uploadToCloudinary(file, resourceType = "image") {
   const formData = new FormData();

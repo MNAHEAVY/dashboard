@@ -875,11 +875,11 @@ export default function Crear() {
 
     const formData = new FormData();
     formData.append("file", file);
-    formData.append("upload_preset", "bvtkpxxl");
+    formData.append("upload_preset", "iphonecase");
 
     try {
       const res = await axios.post(
-        "https://api.cloudinary.com/v1_1/deqxuoyrc/image/upload",
+        "https://api.cloudinary.com/v1_1/ds19bznoo/image/upload",
         formData,
       );
       setSelectedImage(res.data.secure_url);
