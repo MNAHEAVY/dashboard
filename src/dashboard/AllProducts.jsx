@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -10,7 +11,7 @@ function getDisplayPrice(producto) {
   return prices.length ? Math.min(...prices) : 0;
 }
 
-export default function Productos() { 
+export default function Productos() {
   const [productos, setProductos] = useState([]);
   const [filteredProductos, setFilteredProductos] = useState([]);
   const [editingProductId, setEditingProductId] = useState(null);
@@ -211,17 +212,13 @@ export default function Productos() {
             {filteredProductos.map((producto, index) => (
               <tr key={producto._id} className='text-sm'>
                 <td className='whitespace-nowrap px-3 py-2'>
-                  <a
-                    href={"/edit/" + producto._id}
-                    target='_blank'
-                    rel='noopener noreferrer'
-                  >
+                  <Link to={`/edit/${producto._id}`}>
                     <img
                       alt={producto.name}
                       src={producto.images?.[0] || producto.variants?.[0]?.images?.[0]}
                       className='h-10 w-10 rounded-full bg-gray-50 object-cover'
                     />
-                  </a>
+                  </Link>
                 </td>
 
                 <td className='whitespace-nowrap px-3 py-2'>
