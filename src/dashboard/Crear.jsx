@@ -819,12 +819,6 @@ function buildSku({ name, color, model, storage, index }) {
   return parts.join("-");
 }
 
-function buildCompatibleWith(variants) {
-  const models = [...new Set(variants.map((v) => v?.attributes?.model).filter(Boolean))];
-
-  return models;
-}
-
 export default function Crear() {
   const initialFormState = {
     category: "",
@@ -1516,7 +1510,7 @@ export default function Crear() {
                     <option value='mac'>Mac</option>
                     <option value='airpods'>AirPods</option>
                     <option value='watch'>Apple Watch</option>
-                    <option value='watch'>Fundas</option>
+                    <option value='fundas'>Fundas</option>
                     <option value='accessorios'>Energia y cables</option>
                     <option value='accessorios'>Glass</option>
                     <option value='otros'>Otros</option>
