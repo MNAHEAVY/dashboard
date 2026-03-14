@@ -1505,7 +1505,7 @@ export default function Crear() {
                     className='block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset focus:ring-2 focus:ring-indigo-600 sm:text-sm'
                   >
                     <option value=''>Elige</option>
-                    <option value='iphone'>Smartphone</option>
+                    <option value='smartphone'>Smartphone</option>
                     <option value='ipad'>iPad</option>
                     <option value='mac'>Mac</option>
                     <option value='airpods'>AirPods</option>
