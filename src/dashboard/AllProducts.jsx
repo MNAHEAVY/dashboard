@@ -219,7 +219,11 @@ export default function Productos() {
             {filteredProductos.map((producto, index) => (
               <tr key={producto._id} className='text-sm'>
                 <td className='whitespace-nowrap px-3 py-2'>
-                  <Link to={`/edit/${producto._id}`}>
+                  <Link
+                    to={`/edit/${producto._id}`}
+                    target='_blank'
+                    rel='noopener noreferrer'
+                  >
                     <img
                       alt={producto.name}
                       src={producto.images?.[0] || producto.variants?.[0]?.images?.[0]}
