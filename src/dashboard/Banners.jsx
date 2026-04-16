@@ -27,7 +27,9 @@ function Banner({ banner, index, onTipoChange, onImagenChange, uploading }) {
     await onImagenChange(banner._id, file, resourceType);
     e.target.value = "";
   };
+  /////////////////////////////
 
+  /////////////////////////////////////////////////
   return (
     <div className='w-full max-w-2xl rounded-xl border border-gray-200 bg-white p-4 shadow-sm'>
       <div className='mb-3 flex items-center justify-between'>
@@ -139,7 +141,76 @@ export default function Banners() {
       setUploadingId(null);
     }
   };
+  //
+  const [form, setForm] = useState({
+    enabled: true,
+    strongText: "",
+    message: "",
+    buttonText: "",
+    buttonLink: "",
+  });
 
+  const [loaded, setLoaded] = useState(true);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/site-settings`);
+        const data = await res.json();
+
+        setForm({
+          enabled: data?.topBar?.enabled ?? true,
+          strongText: data?.topBar?.strongText ?? "",
+          message: data?.topBar?.message ?? "",
+          buttonText: data?.topBar?.buttonText ?? "",
+          buttonLink: data?.topBar?.buttonLink ?? "/products",
+        });
+      } catch (error) {
+        console.error("Error cargando settings:", error);
+      } finally {
+        setLoaded(false);
+      }
+    };
+
+    fetchSettings();
+  }, []);
+
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+
+    setForm((prev) => ({
+      ...prev,
+      [name]: type === "checkbox" ? checked : value,
+    }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setSaving(true);
+
+    try {
+      const res = await fetch(`${API_BASE_URL}/site-settings/topbar`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(form),
+      });
+
+      const data = await res.json();
+      console.log(data);
+      alert("Top bar actualizada correctamente");
+    } catch (error) {
+      console.error("Error guardando settings:", error);
+      alert("Hubo un error al guardar");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (loaded) return <p>Cargando...</p>;
+  //
   return (
     <div className='flex flex-col items-center justify-center gap-6 p-12'>
       <div className='text-center'>
@@ -147,6 +218,97 @@ export default function Banners() {
         <p className='mt-2 text-sm text-gray-600'>
           Recuerda que cada banner debe tener unas medidas aproximadas de 1280 x 480 px.
         </p>
+      </div>
+      <div className='max-w-2xl rounded-xl bg-white p-6 shadow'>
+        <h2 className='mb-6 text-xl font-bold'>Editar top bar de la landing</h2>
+
+        <form onSubmit={handleSubmit} className='space-y-4'>
+          <label className='flex items-center gap-2'>
+            <input
+              type='checkbox'
+              name='enabled'
+              checked={form.enabled}
+              onChange={handleChange}
+            />
+            Mostrar top bar
+          </label>
+
+          <div>
+            <label className='mb-1 block text-sm font-medium'>Texto fuerte</label>
+            <input
+              type='text'
+              name='strongText'
+              value={form.strongText}
+              onChange={handleChange}
+              className='w-full rounded border p-2'
+              placeholder='Todavía hay tiempo'
+            />
+          </div>
+
+          <div>
+            <label className='mb-1 block text-sm font-medium'>Mensaje</label>
+            <input
+              type='text'
+              name='message'
+              value={form.message}
+              onChange={handleChange}
+              className='w-full rounded border p-2'
+              placeholder='para comprar regalos que les encantarán.'
+            />
+          </div>
+
+          <div>
+            <label className='mb-1 block text-sm font-medium'>Texto botón</label>
+            <input
+              type='text'
+              name='buttonText'
+              value={form.buttonText}
+              onChange={handleChange}
+              className='w-full rounded border p-2'
+              placeholder='Comprar'
+            />
+          </div>
+
+          <div>
+            <label className='mb-1 block text-sm font-medium'>Link botón</label>
+            <input
+              type='text'
+              name='buttonLink'
+              value={form.buttonLink}
+              onChange={handleChange}
+              className='w-full rounded border p-2'
+              placeholder='/products'
+            />
+          </div>
+
+          <div className='rounded-lg border bg-gray-50 p-4'>
+            <p className='mb-2 text-sm font-semibold'>Vista previa:</p>
+
+            {form.enabled ? (
+              <div className='flex flex-wrap items-center gap-x-4 gap-y-2'>
+                <p className='text-sm text-gray-900'>
+                  <strong className='font-semibold'>{form.strongText}</strong>
+                  <span className='mx-2 inline-block h-1 w-1 rounded-full bg-current align-middle' />
+                  {form.message}
+                </p>
+
+                <span className='rounded-full bg-gray-900 px-3 py-1 text-sm font-semibold text-white'>
+                  {form.buttonText} →
+                </span>
+              </div>
+            ) : (
+              <p className='text-sm text-gray-500'>La top bar está desactivada.</p>
+            )}
+          </div>
+
+          <button
+            type='submit'
+            disabled={saving}
+            className='rounded bg-black px-4 py-2 font-semibold text-white disabled:opacity-50'
+          >
+            {saving ? "Guardando..." : "Guardar cambios"}
+          </button>
+        </form>
       </div>
 
       {loading ? (
