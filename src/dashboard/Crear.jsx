@@ -845,21 +845,7 @@ export default function Crear() {
 
     variants: [],
   };
-  const colorTranslations = {
-    black: "Negro",
-    white: "Blanco",
-    gray: "Gris",
-    blue: "Azul",
-    green: "Verde",
-    red: "Rojo",
-    yellow: "Amarillo",
-    pink: "Rosa",
-    purple: "Morado",
-    orange: "Naranja",
-    brown: "Marrón",
-    beige: "Beige",
-    transparent: "Transparente",
-  };
+
   const [selectedImage, setSelectedImage] = useState(null);
   const [loading, setLoading] = useState(false);
   const [inputForm, setInputForm] = useState(initialFormState);
@@ -1140,7 +1126,9 @@ export default function Crear() {
   };
 
   const generateVariants = () => {
-    const cleanColors = inputForm.colors.filter((c) => normalizeText(c.colorLabel));
+    const cleanColors = inputForm.colors.filter(
+      (c) => normalizeText(c.colorKey) || normalizeText(c.colorLabel),
+    );
     const cleanModels = inputForm.models.filter((m) => normalizeText(m.nombre));
     const cleanStorages = inputForm.storages.filter((s) => normalizeText(s.capacidad));
 
@@ -1170,7 +1158,8 @@ export default function Crear() {
                 Number(inputForm.baseStock) ||
                 0,
               attributes: {
-                color: color.colorLabel,
+                colorKey: color.colorKey,
+                colorLabel: color.colorLabel,
                 model: model.nombre,
                 storage: storage.capacidad,
               },
@@ -1204,7 +1193,8 @@ export default function Crear() {
               Number(inputForm.baseStock) ||
               0,
             attributes: {
-              color: color.colorLabel,
+              colorKey: color.colorKey,
+              colorLabel: color.colorLabel,
               model: model.nombre,
             },
             images: [
@@ -1235,7 +1225,8 @@ export default function Crear() {
               Number(inputForm.baseStock) ||
               0,
             attributes: {
-              color: color.colorLabel,
+              colorKey: color.colorKey,
+              colorLabel: color.colorLabel,
               storage: storage.capacidad,
             },
             images: [color.imageColor || inputForm.images[0] || ""].filter(Boolean),
@@ -1291,7 +1282,8 @@ export default function Crear() {
           price: Number(inputForm.basePrice) || 0,
           stock: Number(color.stockColor) || Number(inputForm.baseStock) || 0,
           attributes: {
-            color: color.colorLabel,
+            colorKey: color.colorKey,
+            colorLabel: color.colorLabel,
           },
           images: [color.imageColor || inputForm.images[0] || ""].filter(Boolean),
           available: (Number(color.stockColor) || Number(inputForm.baseStock) || 0) > 0,
@@ -1894,13 +1886,42 @@ export default function Crear() {
                   </div>
 
                   <div>
-                    <label className='block text-sm font-medium'>Color</label>
+                    <label className='block text-sm font-medium'>Color técnico</label>
+
+                    <select
+                      className='w-full rounded border border-gray-300 p-2'
+                      value={variant.attributes?.colorKey || ""}
+                      onChange={(e) =>
+                        handleVariantAttributeChange(index, "colorKey", e.target.value)
+                      }
+                    >
+                      <option value=''>Seleccionar color</option>
+                      <option value='black'>Negro</option>
+                      <option value='white'>Blanco</option>
+                      <option value='gray'>Gris</option>
+                      <option value='blue'>Azul</option>
+                      <option value='green'>Verde</option>
+                      <option value='red'>Rojo</option>
+                      <option value='yellow'>Amarillo</option>
+                      <option value='pink'>Rosa</option>
+                      <option value='purple'>Morado</option>
+                      <option value='orange'>Naranja</option>
+                      <option value='brown'>Marrón</option>
+                      <option value='beige'>Beige</option>
+                      <option value='transparent'>Transparente</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className='block text-sm font-medium'>Nombre visible</label>
+
                     <input
                       className='w-full rounded border border-gray-300 p-2'
-                      value={variant.attributes?.color || ""}
+                      value={variant.attributes?.colorLabel || ""}
                       onChange={(e) =>
-                        handleVariantAttributeChange(index, "color", e.target.value)
+                        handleVariantAttributeChange(index, "colorLabel", e.target.value)
                       }
+                      placeholder='Ej: Titanio Negro'
                     />
                   </div>
 
