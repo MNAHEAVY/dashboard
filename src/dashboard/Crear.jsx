@@ -831,13 +831,35 @@ export default function Crear() {
     baseStock: 0,
     status: "nuevo",
 
-    colors: [{ nombre: "", imageColor: "", stockColor: 0, estado: "nuevo" }],
+    colors: [
+      {
+        colorKey: "",
+        colorLabel: "",
+        imageColor: "",
+        stockColor: 0,
+        estado: "nuevo",
+      },
+    ],
     storages: [],
     models: [],
 
     variants: [],
   };
-
+  const colorTranslations = {
+    black: "Negro",
+    white: "Blanco",
+    gray: "Gris",
+    blue: "Azul",
+    green: "Verde",
+    red: "Rojo",
+    yellow: "Amarillo",
+    pink: "Rosa",
+    purple: "Morado",
+    orange: "Naranja",
+    brown: "Marrón",
+    beige: "Beige",
+    transparent: "Transparente",
+  };
   const [selectedImage, setSelectedImage] = useState(null);
   const [loading, setLoading] = useState(false);
   const [inputForm, setInputForm] = useState(initialFormState);
@@ -979,7 +1001,13 @@ export default function Crear() {
       ...prev,
       colors: [
         ...prev.colors,
-        { nombre: "", imageColor: "", stockColor: 0, estado: "nuevo" },
+        {
+          colorKey: "",
+          colorLabel: "",
+          imageColor: "",
+          stockColor: 0,
+          estado: "nuevo",
+        },
       ],
     }));
   };
@@ -1112,7 +1140,7 @@ export default function Crear() {
   };
 
   const generateVariants = () => {
-    const cleanColors = inputForm.colors.filter((c) => normalizeText(c.nombre));
+    const cleanColors = inputForm.colors.filter((c) => normalizeText(c.colorLabel));
     const cleanModels = inputForm.models.filter((m) => normalizeText(m.nombre));
     const cleanStorages = inputForm.storages.filter((s) => normalizeText(s.capacidad));
 
@@ -1125,7 +1153,7 @@ export default function Crear() {
             variants.push({
               sku: buildSku({
                 name: inputForm.name,
-                color: color.nombre,
+                color: color.colorLabel,
                 model: model.nombre,
                 storage: storage.capacidad,
                 index,
@@ -1142,7 +1170,7 @@ export default function Crear() {
                 Number(inputForm.baseStock) ||
                 0,
               attributes: {
-                color: color.nombre,
+                color: color.colorLabel,
                 model: model.nombre,
                 storage: storage.capacidad,
               },
@@ -1165,7 +1193,7 @@ export default function Crear() {
           variants.push({
             sku: buildSku({
               name: inputForm.name,
-              color: color.nombre,
+              color: color.colorLabel,
               model: model.nombre,
               index,
             }),
@@ -1176,7 +1204,7 @@ export default function Crear() {
               Number(inputForm.baseStock) ||
               0,
             attributes: {
-              color: color.nombre,
+              color: color.colorLabel,
               model: model.nombre,
             },
             images: [
@@ -1196,7 +1224,7 @@ export default function Crear() {
           variants.push({
             sku: buildSku({
               name: inputForm.name,
-              color: color.nombre,
+              color: color.colorLabel,
               storage: storage.capacidad,
               index,
             }),
@@ -1207,7 +1235,7 @@ export default function Crear() {
               Number(inputForm.baseStock) ||
               0,
             attributes: {
-              color: color.nombre,
+              color: color.colorLabel,
               storage: storage.capacidad,
             },
             images: [color.imageColor || inputForm.images[0] || ""].filter(Boolean),
@@ -1257,13 +1285,13 @@ export default function Crear() {
         variants.push({
           sku: buildSku({
             name: inputForm.name,
-            color: color.nombre,
+            color: color.colorLabel,
             index,
           }),
           price: Number(inputForm.basePrice) || 0,
           stock: Number(color.stockColor) || Number(inputForm.baseStock) || 0,
           attributes: {
-            color: color.nombre,
+            color: color.colorLabel,
           },
           images: [color.imageColor || inputForm.images[0] || ""].filter(Boolean),
           available: (Number(color.stockColor) || Number(inputForm.baseStock) || 0) > 0,
@@ -1606,17 +1634,45 @@ export default function Crear() {
         </div>
 
         {inputForm.colors.map((color, index) => (
-          <div className='mb-4 flex flex-col space-y-2' key={index}>
-            <label className='text-sm font-medium'>Nombre</label>
-            <input
+          <div className='mb-4 flex flex-col space-y-2 rounded border p-4' key={index}>
+            <label className='text-sm font-medium'>Color técnico</label>
+
+            <select
               className='rounded border border-gray-300 p-2'
+              value={color.colorKey}
+              onChange={(event) => {
+                handleColorChangeB(index, "colorKey", event.target.value);
+              }}
+            >
+              <option value=''>Seleccionar color</option>
+              <option value='black'>Negro</option>
+              <option value='white'>Blanco</option>
+              <option value='gray'>Gris</option>
+              <option value='blue'>Azul</option>
+              <option value='green'>Verde</option>
+              <option value='red'>Rojo</option>
+              <option value='yellow'>Amarillo</option>
+              <option value='pink'>Rosa</option>
+              <option value='purple'>Morado</option>
+              <option value='orange'>Naranja</option>
+              <option value='brown'>Marrón</option>
+              <option value='beige'>Beige</option>
+              <option value='transparent'>Transparente</option>
+            </select>
+
+            <label className='text-sm font-medium'>Nombre visible</label>
+
+            <input
               type='text'
-              name='nombre'
-              value={color.nombre}
+              className='rounded border border-gray-300 p-2'
+              placeholder='Ej: Titanio Negro'
+              name='colorLabel'
+              value={color.colorLabel}
               onChange={(event) => handleColorChange(index, event)}
             />
 
             <label className='text-sm font-medium'>Imagen</label>
+
             <input
               type='file'
               className='rounded border border-gray-300 p-2'
@@ -1634,6 +1690,7 @@ export default function Crear() {
             )}
 
             <label className='text-sm font-medium'>Stock</label>
+
             <input
               className='rounded border border-gray-300 p-2'
               type='number'
