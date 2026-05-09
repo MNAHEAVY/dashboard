@@ -12,7 +12,7 @@ const UPLOAD_PRESET = "iphonecase";
 
 async function uploadToCloudinary(file) {
   const formData = new FormData();
-  formData.append("file", file); 
+  formData.append("file", file);
   formData.append("upload_preset", UPLOAD_PRESET);
 
   const response = await axios.post(
@@ -31,7 +31,8 @@ function createEmptyVariant() {
     available: true,
     images: [],
     attributes: {
-      color: "",
+      colorKey: "",
+      colorLabel: "",
       model: "",
       storage: "",
       size: "",
@@ -56,7 +57,7 @@ function getFirstImage(product) {
 
 function buildVariantLabel(variant) {
   const attrs = variant?.attributes || {};
-  return [attrs.color, attrs.model, attrs.storage, attrs.size]
+  return [attrs.colorKey, attrs.colorLabel, attrs.model, attrs.storage, attrs.size]
     .filter(Boolean)
     .join(" · ");
 }
@@ -303,7 +304,8 @@ export default function ProdEdit() {
           available: stock > 0,
           images: variant.images || [],
           attributes: {
-            color: variant.attributes?.color || "",
+            colorKey: variant.attributes?.colorKey || "",
+            colorLabel: variant.attributes?.colorLabel || "",
             model: variant.attributes?.model || "",
             storage: variant.attributes?.storage || "",
             size: variant.attributes?.size || "",
@@ -608,18 +610,64 @@ export default function ProdEdit() {
                           />
                         </div>
 
-                        <div>
-                          <label className='block font-medium'>Color</label>
+                        {/* SECCIÓN DE COLOR CORREGIDA */}
+                        <div className='space-y-2'>
+                          <label className='block font-medium'>Nombre del color</label>
                           <input
                             className='w-full rounded-md border border-gray-300 p-2'
                             type='text'
-                            value={variant.attributes?.color || ""}
+                            placeholder='Ej: Azul Marino'
+                            value={variant.attributes?.colorLabel || ""}
                             onChange={(e) =>
-                              handleVariantAttributeChange(index, "color", e.target.value)
+                              handleVariantAttributeChange(
+                                index,
+                                "colorLabel",
+                                e.target.value,
+                              )
                             }
                           />
                         </div>
 
+                        <div className='space-y-2'>
+                          <label className='block font-medium'>Color técnico</label>
+                          <div className='flex items-center gap-2'>
+                            <select
+                              className='w-full rounded-md border border-gray-300 p-2'
+                              value={variant.attributes?.colorKey || ""}
+                              onChange={(e) =>
+                                handleVariantAttributeChange(
+                                  index,
+                                  "colorKey",
+                                  e.target.value,
+                                )
+                              }
+                            >
+                              <option value=''>Seleccionar color</option>
+                              <option value='black'>Negro</option>
+                              <option value='white'>Blanco</option>
+                              <option value='gray'>Gris</option>
+                              <option value='blue'>Azul</option>
+                              <option value='green'>Verde</option>
+                              <option value='red'>Rojo</option>
+                              <option value='yellow'>Amarillo</option>
+                              <option value='pink'>Rosa</option>
+                              <option value='purple'>Morado</option>
+                              <option value='orange'>Naranja</option>
+                              <option value='brown'>Marrón</option>
+                              <option value='beige'>Beige</option>
+                              <option value='transparent'>Transparente</option>
+                            </select>
+                            <div
+                              className='h-10 w-12 shrink-0 rounded border border-gray-300'
+                              style={{
+                                backgroundColor:
+                                  variant.attributes?.colorKey || "transparent",
+                              }}
+                            />
+                          </div>
+                        </div>
+
+                        {/* OTROS ATRIBUTOS */}
                         <div>
                           <label className='block font-medium'>Modelo</label>
                           <input
