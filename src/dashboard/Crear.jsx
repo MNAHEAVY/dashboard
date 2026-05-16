@@ -66,27 +66,7 @@ export default function Crear() {
   const [loading, setLoading] = useState(false);
   const [inputForm, setInputForm] = useState(initialFormState);
 
-  //
-  useEffect(() => {
-    console.log("🎨 COLORS STATE:");
-    inputForm.colors.forEach((c, i) => {
-      console.log(`Color ${i}:`, {
-        colorKey: c.colorKey,
-        colorLabel: c.colorLabel,
-      });
-    });
-  }, [inputForm.colors]);
 
-  useEffect(() => {
-    console.log("📦 VARIANTS STATE:");
-    inputForm.variants.forEach((v, i) => {
-      console.log(`Variant ${i}:`, {
-        colorKey: v.attributes?.colorKey,
-        colorLabel: v.attributes?.colorLabel,
-      });
-    });
-  }, [inputForm.variants]);
-  //
   function buildCompatibleWith(variants) {
     const models = [
       ...new Set(variants.map((v) => v?.attributes?.model).filter(Boolean)),
