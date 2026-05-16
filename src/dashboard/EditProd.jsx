@@ -64,10 +64,39 @@ function buildVariantLabel(variant) {
 
 export default function ProdEdit() {
   const { id } = useParams();
-
+  const [openDropdown, setOpenDropdown] = useState(null);
+  const [activeGroup, setActiveGroup] = useState(colorGroups[0]);
   const [loading, setLoading] = useState(false);
   const [pageLoading, setPageLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState(null);
+  const colorGroups = [
+    { name: "Rojo", val: "red" },
+    { name: "Naranja", val: "orange" },
+    { name: "Ámbar", val: "amber" },
+    { name: "Amarillo", val: "yellow" },
+    { name: "Lima", val: "lime" },
+    { name: "Verde", val: "green" },
+    { name: "Esmeralda", val: "emerald" },
+    { name: "Teal", val: "teal" },
+    { name: "Cian", val: "cyan" },
+    { name: "Cielo", val: "sky" },
+    { name: "Azul", val: "blue" },
+    { name: "Índigo", val: "indigo" },
+    { name: "Violeta", val: "violet" },
+    { name: "Púrpura", val: "purple" },
+    { name: "Fucsia", val: "fuchsia" },
+    { name: "Rosa", val: "pink" },
+    { name: "Rosa Intenso", val: "rose" },
+    { name: "Pizarra", val: "slate" },
+    { name: "Gris", val: "gray" },
+    { name: "Zinc", val: "zinc" },
+    { name: "Neutral", val: "neutral" },
+    { name: "Piedra", val: "stone" },
+    { name: "Taupe", val: "taupe" },
+    { name: "Malva", val: "mauve" },
+    { name: "Neblina", val: "mist" },
+    { name: "Oliva", val: "olive" },
+  ];
 
   const [prodEd, setProdEd] = useState({
     name: "",
@@ -361,6 +390,251 @@ export default function ProdEdit() {
     );
   }
 
+  const getColorFromPalette = (key) => {
+    if (!key) return "transparent";
+
+    if (!key.includes("-")) return key;
+
+    const [group, level] = key.split("-");
+    return tailwindPalette[group]?.[level] || "transparent";
+  };
+  const levels = [200, 300, 400, 500, 600, 700, 800];
+  const tailwindPalette = {
+    amber: {
+      200: "#fee685",
+      300: "#ffd230",
+      400: "#ffb900",
+      500: "#fe9a00",
+      600: "#e17100",
+      700: "#bb4d00",
+      800: "#973c00",
+    },
+    blue: {
+      200: "#bedbff",
+      300: "#8ec5ff",
+      400: "#51a2ff",
+      500: "#2b7fff",
+      600: "#155dfb",
+      700: "#1447e6",
+      800: "#193cb8",
+    },
+    cyan: {
+      200: "#a2f4fd",
+      300: "#53eafd",
+      400: "#00d3f2",
+      500: "#00b8db",
+      600: "#0092b8",
+      700: "#007595",
+      800: "#005f78",
+    },
+    emerald: {
+      200: "#a4f4cf",
+      300: "#5ee9b5",
+      400: "#00d492",
+      500: "#00bc7d",
+      600: "#009966",
+      700: "#007a55",
+      800: "#006045",
+    },
+    fuchsia: {
+      200: "#f6cfff",
+      300: "#f4a8ff",
+      400: "#ed6aff",
+      500: "#e12afb",
+      600: "#c800de",
+      700: "#a800b7",
+      800: "#8a0194",
+    },
+    gray: {
+      200: "#e5e7eb",
+      300: "#d1d5db",
+      400: "#99a1af",
+      500: "#6a7282",
+      600: "#4a5565",
+      700: "#364153",
+      800: "#1e2939",
+    },
+    green: {
+      200: "#b9f8cf",
+      300: "#7bf1a7",
+      400: "#06df72",
+      500: "#00c950",
+      600: "#00a63e",
+      700: "#008235",
+      800: "#026630",
+    },
+    indigo: {
+      200: "#c7d2ff",
+      300: "#a3b3ff",
+      400: "#7c86ff",
+      500: "#615fff",
+      600: "#4f39f6",
+      700: "#432dd7",
+      800: "#372aac",
+    },
+    lime: {
+      200: "#d8f999",
+      300: "#bbf451",
+      400: "#9ae600",
+      500: "#7ccf00",
+      600: "#5ea500",
+      700: "#497d00",
+      800: "#3d6300",
+    },
+    mauve: {
+      200: "#e7e4e7",
+      300: "#d7d0d7",
+      400: "#a89ea9",
+      500: "#79697b",
+      600: "#594c5b",
+      700: "#463947",
+      800: "#2a212c",
+    },
+    mist: {
+      200: "#e3e7e8",
+      300: "#d0d6d8",
+      400: "#9ca8ab",
+      500: "#67787c",
+      600: "#4b585b",
+      700: "#394447",
+      800: "#22292b",
+    },
+    neutral: {
+      200: "#e5e5e5",
+      300: "#d4d4d4",
+      400: "#a1a1a1",
+      500: "#737373",
+      600: "#525252",
+      700: "#404040",
+      800: "#262626",
+    },
+    olive: {
+      200: "#e8e8e3",
+      300: "#d8d8d0",
+      400: "#abab9c",
+      500: "#7c7c67",
+      600: "#5b5b4b",
+      700: "#474739",
+      800: "#2b2b22",
+    },
+    orange: {
+      200: "#ffd6a7",
+      300: "#ffb869",
+      400: "#ff8903",
+      500: "#ff6900",
+      600: "#f54900",
+      700: "#ca3500",
+      800: "#9f2d00",
+    },
+    pink: {
+      200: "#fccee8",
+      300: "#fea5d5",
+      400: "#fb64b6",
+      500: "#f6339a",
+      600: "#e60076",
+      700: "#c6005b",
+      800: "#a3004c",
+    },
+    purple: {
+      200: "#e9d4ff",
+      300: "#dab2ff",
+      400: "#c27aff",
+      500: "#ad46ff",
+      600: "#9810fa",
+      700: "#8200db",
+      800: "#6e11b0",
+    },
+    red: {
+      200: "#ffc9c9",
+      300: "#ffa2a2",
+      400: "#ff6467",
+      500: "#fb2c36",
+      600: "#e7000b",
+      700: "#c10007",
+      800: "#9f0712",
+    },
+    rose: {
+      200: "#ffccd2",
+      300: "#ffa1ad",
+      400: "#ff637e",
+      500: "#ff2056",
+      600: "#ed003f",
+      700: "#c70036",
+      800: "#a50036",
+    },
+    sky: {
+      200: "#b8e6fe",
+      300: "#74d4ff",
+      400: "#00bcff",
+      500: "#00a6f4",
+      600: "#0084d1",
+      700: "#0069a8",
+      800: "#00598a",
+    },
+    slate: {
+      200: "#e2e8f0",
+      300: "#cad5e2",
+      400: "#90a1b9",
+      500: "#62748e",
+      600: "#45556c",
+      700: "#314158",
+      800: "#1d293d",
+    },
+    stone: {
+      200: "#e7e5e4",
+      300: "#d7d3d1",
+      400: "#a6a09b",
+      500: "#79716b",
+      600: "#57534d",
+      700: "#44403b",
+      800: "#292524",
+    },
+    taupe: {
+      200: "#e8e4e3",
+      300: "#d8d2d0",
+      400: "#aba09c",
+      500: "#7c6d67",
+      600: "#5b4f4b",
+      700: "#473c39",
+      800: "#2b2422",
+    },
+    teal: {
+      200: "#96f7e4",
+      300: "#46ecd4",
+      400: "#00d5bd",
+      500: "#00bba7",
+      600: "#009689",
+      700: "#00786f",
+      800: "#005f5a",
+    },
+    violet: {
+      200: "#ddd6ff",
+      300: "#c4b4ff",
+      400: "#a684ff",
+      500: "#8e51ff",
+      600: "#7f22fe",
+      700: "#7008e7",
+      800: "#5d0ec0",
+    },
+    yellow: {
+      200: "#fff085",
+      300: "#ffdf20",
+      400: "#fdc700",
+      500: "#f0b100",
+      600: "#d18700",
+      700: "#a65f00",
+      800: "#894b00",
+    },
+    zinc: {
+      200: "#e4e4e7",
+      300: "#d4d4d8",
+      400: "#9f9fa9",
+      500: "#71717b",
+      600: "#52525c",
+      700: "#3f3f46",
+      800: "#27272a",
+    },
+  };
   return (
     <div className='mx-auto bg-slate-200 p-4'>
       <ToastContainer />
@@ -611,58 +885,136 @@ export default function ProdEdit() {
                         </div>
 
                         {/* SECCIÓN DE COLOR CORREGIDA */}
-                        <div className='space-y-2'>
-                          <label className='block font-medium'>Nombre del color</label>
-                          <input
-                            className='w-full rounded-md border border-gray-300 p-2'
-                            type='text'
-                            placeholder='Ej: Azul Marino'
-                            value={variant.attributes?.colorLabel || ""}
-                            onChange={(e) =>
-                              handleVariantAttributeChange(
-                                index,
-                                "colorLabel",
-                                e.target.value,
-                              )
-                            }
-                          />
-                        </div>
+                        {/* SECCIÓN COLOR CORREGIDA Y SEPARADA */}
+                        <div className='space-y-3'>
+                          {/* COLOR TÉCNICO */}
+                          <div>
+                            <label className='block text-sm font-medium'>
+                              Color técnico
+                            </label>
 
-                        <div className='space-y-2'>
-                          <label className='block font-medium'>Color técnico</label>
-                          <div className='flex items-center gap-2'>
-                            <select
+                            <div className='relative'>
+                              {/* BOTÓN */}
+                              <div
+                                onClick={() => toggleDropdown(index)}
+                                className='flex items-center justify-between border p-2 rounded cursor-pointer bg-white'
+                              >
+                                <div className='flex items-center gap-2'>
+                                  <div
+                                    className='w-4 h-4 rounded-full border'
+                                    style={{
+                                      backgroundColor: getColorFromPalette(
+                                        variant.attributes?.colorKey,
+                                      ),
+                                    }}
+                                  />
+                                  <span className='font-mono text-sm'>
+                                    {variant.attributes?.colorKey || "Seleccionar"}
+                                  </span>
+                                </div>
+                              </div>
+
+                              {/* DROPDOWN */}
+                              {openDropdown === index && (
+                                <div className='absolute left-0 top-full mt-1 w-full max-w-[600px] bg-white border border-gray-200 shadow-2xl rounded-lg py-2 max-h-72 overflow-y-auto z-50'>
+                                  {/* COLORES SÓLIDOS */}
+                                  <div className='px-2'>
+                                    {["black", "white"].map((c) => (
+                                      <div
+                                        key={c}
+                                        onClick={() => {
+                                          handleVariantAttributeChange(
+                                            index,
+                                            "colorKey",
+                                            c,
+                                          );
+                                          setOpenDropdown(null);
+                                        }}
+                                        className='px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm flex justify-between items-center rounded'
+                                      >
+                                        {c === "black" ? "Negro" : "Blanco"}
+                                        <div
+                                          className='w-4 h-4 border border-gray-300 rounded'
+                                          style={{ backgroundColor: c }}
+                                        />
+                                      </div>
+                                    ))}
+                                  </div>
+
+                                  <hr className='my-2 border-gray-100' />
+
+                                  {/* PANEL EN COLUMNAS */}
+                                  <div className='flex w-full max-h-72'>
+                                    {/* IZQUIERDA */}
+                                    <div className='w-1/2 border-r overflow-y-auto'>
+                                      {colorGroups.map((group) => (
+                                        <div
+                                          key={group.val}
+                                          onMouseEnter={() => setActiveGroup(group)}
+                                          className={`px-4 py-2 cursor-pointer text-sm ${
+                                            activeGroup?.val === group.val
+                                              ? "bg-blue-100 font-semibold"
+                                              : "hover:bg-blue-50"
+                                          }`}
+                                        >
+                                          {group.name}
+                                        </div>
+                                      ))}
+                                    </div>
+
+                                    {/* DERECHA */}
+                                    <div className='w-1/2 sticky top-0 bg-white'>
+                                      {activeGroup &&
+                                        levels.map((lvl) => {
+                                          const key = `${activeGroup.val}-${lvl}`;
+                                          const hex =
+                                            tailwindPalette[activeGroup.val]?.[lvl];
+
+                                          return (
+                                            <div
+                                              key={key}
+                                              onClick={() => {
+                                                handleVariantAttributeChange(
+                                                  index,
+                                                  "colorKey",
+                                                  key,
+                                                );
+                                                setOpenDropdown(null);
+                                              }}
+                                              className='flex items-center justify-between px-4 py-2 hover:bg-blue-600 hover:text-white cursor-pointer text-sm'
+                                            >
+                                              <span className='font-mono'>{lvl}</span>
+                                              <div
+                                                className='w-full h-5 rounded border border-black/10'
+                                                style={{ backgroundColor: hex }}
+                                              />
+                                            </div>
+                                          );
+                                        })}
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* COLOR LABEL (MARKETING) */}
+                          <div>
+                            <label className='block text-sm font-medium'>
+                              Nombre visible
+                            </label>
+                            <input
                               className='w-full rounded-md border border-gray-300 p-2'
-                              value={variant.attributes?.colorKey || ""}
+                              type='text'
+                              placeholder='Ej: Titanio Negro'
+                              value={variant.attributes?.colorLabel || ""}
                               onChange={(e) =>
                                 handleVariantAttributeChange(
                                   index,
-                                  "colorKey",
+                                  "colorLabel",
                                   e.target.value,
                                 )
                               }
-                            >
-                              <option value=''>Seleccionar color</option>
-                              <option value='black'>Negro</option>
-                              <option value='white'>Blanco</option>
-                              <option value='gray'>Gris</option>
-                              <option value='blue'>Azul</option>
-                              <option value='green'>Verde</option>
-                              <option value='red'>Rojo</option>
-                              <option value='yellow'>Amarillo</option>
-                              <option value='pink'>Rosa</option>
-                              <option value='purple'>Morado</option>
-                              <option value='orange'>Naranja</option>
-                              <option value='brown'>Marrón</option>
-                              <option value='beige'>Beige</option>
-                              <option value='transparent'>Transparente</option>
-                            </select>
-                            <div
-                              className='h-10 w-12 shrink-0 rounded border border-gray-300'
-                              style={{
-                                backgroundColor:
-                                  variant.attributes?.colorKey || "transparent",
-                              }}
                             />
                           </div>
                         </div>

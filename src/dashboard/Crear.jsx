@@ -1,792 +1,8 @@
-// import axios from "axios";
-// import "react-toastify/dist/ReactToastify.css";
-// import { useState } from "react";
-// import { ToastContainer, toast } from "react-toastify";
-
-// export default function Crear() {
-//   const initialFormState = {
-//     categorias: "",
-//     subCategoria: "",
-//     nombre: "",
-//     marca: "",
-//     descripcion: "",
-//     imagenGeneral: [],
-//     stockGeneral: 0,
-//     estado: "",
-//     precioBase: 0,
-//     disponible: false,
-//     tipo: "",
-//     color: [{ nombre: "", imageColor: "", stockColor: 0, estado: "" }],
-//     almacenamiento: [],
-//     modelo: [],
-//   };
-//   const [selectedImage, setSelectedImage] = useState(null);
-//   const [loading, setLoading] = useState(false);
-//   const [inputForm, setInputForm] = useState(initialFormState);
-
-//   function handleChange(e) {
-//     setInputForm({
-//       ...inputForm,
-//       [e.target.name]: e.target.value,
-//     });
-//   }
-
-//   const handleImageUpload = async (event) => {
-//     const file = event.target.files[0];
-//     if (!file) return;
-
-//     setLoading(true);
-
-//     const formData = new FormData();
-//     formData.append("file", file);
-//     formData.append("upload_preset", "bvtkpxxl");
-
-//     try {
-//       const res = await axios.post(
-//         `https://api.cloudinary.com/v1_1/deqxuoyrc/image/upload`,
-//         formData
-//       );
-//       setSelectedImage(res.data.secure_url); // ImagenGeneral subida exitosamente
-//     } catch (error) {
-//       console.error("Error uploading image:", error);
-//       toast.error("Error al subir la imagenGeneral, intente de nuevo");
-//     } finally {
-//       setLoading(false); // Finaliza el loading
-//     }
-//   };
-
-//   const addImageToProduct = () => {
-//     if (selectedImage) {
-//       setInputForm({
-//         ...inputForm,
-//         imagenGeneral: [...inputForm.imagenGeneral, selectedImage],
-//       });
-
-//       setSelectedImage(null);
-//     }
-//   };
-//   const removeImageFromProduct = (indexToRemove) => {
-//     setInputForm({
-//       ...inputForm,
-//       imagenGeneral: inputForm.imagenGeneral.filter(
-//         (_, index) => index !== indexToRemove
-//       ),
-//     });
-//   };
-
-//   /*manejadores de color*/
-//   const handleImageUploadColor = (index, event) => {
-//     const file = event.target.files[0];
-//     const formData = new FormData();
-//     formData.append("file", file);
-//     formData.append("upload_preset", "bvtkpxxl");
-
-//     axios
-//       .post("https://api.cloudinary.com/v1_1/deqxuoyrc/upload", formData)
-//       .then((response) => {
-//         const imageUrl = response.data.secure_url;
-//         handleColorChangeB(index, "imageColor", imageUrl);
-//       })
-//       .catch((error) => {
-//         console.error("Error uploading image", error);
-//       });
-//   };
-//   const handleColorChangeB = (index, name, value) => {
-//     const newColor = [...inputForm.color];
-//     newColor[index][name] = value;
-//     setInputForm({ ...inputForm, color: newColor });
-//   };
-//   const handleColorChange = (index, event) => {
-//     const newColor = [...inputForm.color];
-//     newColor[index][event.target.name] = event.target.value;
-//     setInputForm({ ...inputForm, color: newColor });
-//   };
-//   const addColor = () => {
-//     setInputForm({
-//       ...inputForm,
-//       color: [
-//         ...inputForm.color,
-//         { nombre: "", imageColor: "", stockColor: 0, estado: "" },
-//       ],
-//     });
-//   };
-//   const removeColor = (index) => {
-//     const newColor = [...inputForm.color];
-//     newColor.splice(index, 1);
-//     setInputForm({ ...inputForm, color: newColor });
-//   };
-
-//   /*manejadores de modelo*/
-//   const handleImageUploadModel = (index, event) => {
-//     const file = event.target.files[0];
-//     const formData = new FormData();
-//     formData.append("file", file);
-//     formData.append("upload_preset", "bvtkpxxl");
-
-//     axios
-//       .post("https://api.cloudinary.com/v1_1/deqxuoyrc/upload", formData)
-//       .then((response) => {
-//         const imageUrl = response.data.secure_url;
-//         handleModelChangeB(index, "imageModel", imageUrl);
-//       })
-//       .catch((error) => {
-//         console.error("Error uploading image", error);
-//       });
-//   };
-
-//   const handleModelChange = (index, event) => {
-//     const newModel = [...inputForm.modelo];
-//     newModel[index][event.target.name] = event.target.value;
-//     setInputForm({ ...inputForm, modelo: newModel });
-//   };
-//   const handleModelChangeB = (index, name, value) => {
-//     const newModel = [...inputForm.modelo];
-//     newModel[index][name] = value;
-//     setInputForm({ ...inputForm, modelo: newModel });
-//   };
-//   const addModel = () => {
-//     setInputForm({
-//       ...inputForm,
-//       modelo: [
-//         ...inputForm.modelo,
-//         {
-//           nombre: "",
-//           precio: 0,
-//           stockModel: 0,
-//           disponible: false,
-//           imageModel: "",
-//         },
-//       ],
-//     });
-//   };
-//   const removeModel = (index) => {
-//     const newModel = [...inputForm.modelo];
-//     newModel.splice(index, 1);
-//     setInputForm({ ...inputForm, modelo: newModel });
-//   };
-
-//   /*manejadores de alamcenamiento*/
-//   const handleStorageChange = (index, event) => {
-//     const newStorage = [...inputForm.almacenamiento];
-//     newStorage[index][event.target.name] = event.target.value;
-//     setInputForm({ ...inputForm, almacenamiento: newStorage });
-//   };
-//   const handleStorageChangeB = (index, name, value) => {
-//     const newStorage = [...inputForm.almacenamiento];
-//     newStorage[index][name] = value;
-//     setInputForm({ ...inputForm, almacenamiento: newStorage });
-//   };
-//   const addStorage = () => {
-//     setInputForm({
-//       ...inputForm,
-//       almacenamiento: [
-//         ...inputForm.almacenamiento,
-//         {
-//           capacidad: "",
-//           precio: 0,
-//           stockStorage: 0,
-//           disponible: false,
-//           estado: "",
-//         },
-//       ],
-//     });
-//   };
-//   const removeStorage = (index) => {
-//     const newStorage = [...inputForm.almacenamiento];
-//     newStorage.splice(index, 1);
-//     setInputForm({ ...inputForm, almacenamiento: newStorage });
-//   };
-
-//   const handleSubmit = async (e) => {
-//     e.preventDefault();
-
-//     try {
-//       await axios.post(
-//         "https://backend-reino-production.up.railway.app/products",
-//         inputForm
-//       );
-//       toast.success("Producto creado con éxito.");
-//       setInputForm(initialFormState);
-//     } catch (error) {
-//       toast.error("Error al crear el producto.");
-//     }
-//   };
-
-//   return (
-//     <div className='relative isolate overflow-hidden bg-white px-6 pb-6 lg:overflow-visible lg:px-0'>
-//       <h2 className='text-center font-semibold leading-7 text-gray-900 '>
-//         Agregar producto Nuevo
-//       </h2>
-//       <p className='text-center mt-1 text-sm leading-6 text-gray-600'>
-//         Verifica bien los datos antes de guardar.
-//       </p>
-//       <div className='flex flex-col px-6 pt-6 gap-3 items-center  '>
-//         <label htmlFor='formFile' className='block font-medium py-2'>
-//           Imagen/es del Producto
-//         </label>
-//         <div className='flex gap-3 items-center'>
-//           <input
-//             className='block w-auto h-8 text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none'
-//             type='file'
-//             id='formFile'
-//             onChange={handleImageUpload}
-//           />
-//           <button
-//             type='button'
-//             className='bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 px-4 rounded'
-//             onClick={addImageToProduct}
-//             disabled={loading} // Deshabilitar el botón mientras carga
-//           >
-//             {loading ? "Subiendo..." : "Agregar imagen al producto"}
-//           </button>
-//         </div>
-//       </div>
-
-//       {/* Galería de imágenes */}
-//       <div className='flex flex-wrap justify-center items-center gap-4 mt-4 py-4'>
-//         {inputForm?.imagenGeneral.map((imgUrl, index) => (
-//           <div key={index} className='image-item'>
-//             {" "}
-//             <img
-//               key={index}
-//               src={imgUrl}
-//               alt='Uploaded'
-//               className='w-[120px] h-[150px] object-cover border border-gray-300 rounded-lg'
-//             />{" "}
-//             <button
-//               onClick={() => removeImageFromProduct(index)}
-//               className='top-4 right-4 flex items-center justify-center w-6 h-6 text-white rounded-full bg-red-600'
-//             >
-//               X
-//             </button>
-//           </div>
-//         ))}
-//       </div>
-//       <hr></hr>
-//       <ToastContainer />
-
-//       <form
-//         className='px-24'
-//         onSubmit={(e) => {
-//           handleSubmit(e);
-//         }}
-//       >
-//         <div className='space-y-12'>
-//           <div className='border-b border-gray-900/10 pb-12'>
-//             <div className='mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-4'>
-//               {/* Categoria */}
-//               <div className='sm:col-span-1'>
-//                 <label
-//                   htmlFor='categoria'
-//                   className='block text-sm font-medium leading-6 text-gray-900'
-//                 >
-//                   Categoría
-//                 </label>
-//                 <div className='mt-2'>
-//                   <select
-//                     id='categoria'
-//                     name='categoria'
-//                     value={inputForm.categorias}
-//                     onChange={(e) => handleChange(e)}
-//                     className='block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset placeholder:text-gray-400 focus:ring-2 focus:ring-indigo-600 sm:text-sm'
-//                   >
-//                     <option disabled>Elige</option>
-//                     <option value={"Iphone"}>iPhone</option>
-//                     <option value={"Accesorios"}>iPad</option>
-//                     <option value={"Watch"}>Mac</option>
-//                     <option value={"Airpods"}>AirPods</option>
-//                     <option value={"Baterias"}>Apple Watch</option>
-//                     <option value={"Modulos"}>Accesorios</option>
-//                     <option value={"Tapa trasera"}>Otros</option>
-//                   </select>
-//                 </div>
-//               </div>
-//               {/* SubCategoria */}
-//               <div className='sm:col-span-1'>
-//                 <label
-//                   htmlFor='categoria'
-//                   className='block text-sm font-medium leading-6 text-gray-900'
-//                 >
-//                   SubCategoría
-//                 </label>
-//                 <div className='mt-2'>
-//                   <select
-//                     id='subCategoria'
-//                     name='subCategoria'
-//                     value={inputForm.subCategoria}
-//                     onChange={(e) => handleChange(e)}
-//                     className='block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset placeholder:text-gray-400 focus:ring-2 focus:ring-indigo-600 sm:text-sm'
-//                   >
-//                     <option disabled>Elige</option>
-//                     <option value={"iPhone 16"}>iPhone 16</option>
-//                     <option value={"iPhone 15"}>iPhone 15</option>
-//                     <option value={"iPhone 14"}>iPhone 14</option>
-//                     <option value={"iPhone SE"}>iPhone SE</option>
-//                     <option value={"iPhone 13"}>iPhone 13</option>
-//                     <option value={"iPad Pro"}>iPad Pro</option>
-//                     <option value={"iPad Air"}>iPad Air</option>
-//                     <option value={"iPad"}>iPad</option>
-//                     <option value={"iPad mini"}>iPad mini</option>
-//                     <option value={"MacBook Air"}>MacBook Air</option>
-//                     <option value={"MacBook Pro"}>MacBook Pro</option>
-//                     <option value={"iMac"}>iMac</option>
-//                     <option value={"Mac mini"}>Mac mini</option>
-//                     <option value={"Mac Studio"}>Mac Studio</option>
-//                     <option value={"Mac Pro"}>Mac Pro</option>
-//                     <option value={"Apple Watch Series 9"}>Apple Watch Series 9</option>
-//                     <option value={"Apple Watch Ultra"}>Apple Watch Ultra</option>
-//                     <option value={"Apple Watch SE"}>Apple Watch SE</option>
-//                     <option value={"AirPods Pro"}>AirPods Pro</option>
-//                     <option value={"AirPods (3ª generación)"}>
-//                       AirPods (3ª generación)
-//                     </option>
-//                     <option value={"AirPods Max"}>AirPods Max</option>
-//                     <option value={"Fundas"}>Fundas y protectores</option>
-//                     <option value={"Glass"}>Glass</option>
-//                     <option value={"Energia y Cables"}>Cargadores y adaptadores</option>
-//                     <option value={"Correas"}>Correas para Apple Watch</option>
-//                     <option value={"Teclados, ratones y trackpads"}>
-//                       Teclados, ratones y trackpads
-//                     </option>
-//                     <option value={"AirTag"}>AirTag</option>{" "}
-//                   </select>
-//                 </div>
-//               </div>
-//               {/* Nombre */}
-//               <div className='sm:col-span-1'>
-//                 <label
-//                   htmlFor='nombre'
-//                   className='block text-sm font-medium leading-6 text-gray-900'
-//                 >
-//                   Nombre
-//                 </label>
-//                 <div className='mt-2'>
-//                   <input
-//                     id='nombre'
-//                     type='text'
-//                     name='nombre'
-//                     placeholder='Por Ej. iPhone 15 Pro Max'
-//                     value={inputForm.nombre}
-//                     onChange={(e) => handleChange(e)}
-//                     className='block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-indigo-600 sm:text-sm'
-//                   />
-//                 </div>
-//               </div>
-//               {/* Marca */}
-//               <div className='sm:col-span-1'>
-//                 <label
-//                   htmlFor='marca'
-//                   className='block text-sm font-medium leading-6 text-gray-900'
-//                 >
-//                   Marca
-//                 </label>
-//                 <div className='mt-2'>
-//                   <input
-//                     id='marca'
-//                     type='text'
-//                     name='marca'
-//                     placeholder='Por Ej. Apple'
-//                     value={inputForm.marca}
-//                     onChange={(e) => handleChange(e)}
-//                     className='block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset placeholder:text-gray-400 focus:ring-2 focus:ring-indigo-600 sm:text-sm'
-//                   />
-//                 </div>
-//               </div>
-//               {/* Descripcion */}
-//               <div className='sm:col-span-1'>
-//                 <label
-//                   htmlFor='nombre'
-//                   className='block text-sm font-medium leading-6 text-gray-900'
-//                 >
-//                   Descripcion
-//                 </label>
-//                 <div className='mt-2'>
-//                   <input
-//                     id='descripcion'
-//                     type='text'
-//                     name='descripcion'
-//                     placeholder='Por Ej. Apple'
-//                     value={inputForm.descripcion}
-//                     onChange={(e) => handleChange(e)}
-//                     className='block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-indigo-600 sm:text-sm'
-//                   />
-//                 </div>
-//               </div>
-//               {/* Stock */}
-//               <div className='sm:col-span-1'>
-//                 <label
-//                   htmlFor='nombre'
-//                   className='block text-sm font-medium leading-6 text-gray-900'
-//                 >
-//                   Stock
-//                 </label>
-//                 <div className='mt-2'>
-//                   <input
-//                     id='stockGeneral'
-//                     type='number'
-//                     name='stockGeneral'
-//                     placeholder='Por Ej. Apple'
-//                     value={inputForm.stockGeneral}
-//                     onChange={(e) => handleChange(e)}
-//                     className='block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-indigo-600 sm:text-sm'
-//                   />
-//                 </div>
-//               </div>
-//               {/* Estado */}
-//               <div className='sm:col-span-1'>
-//                 <label
-//                   htmlFor='estado'
-//                   className='block text-sm font-medium leading-6 text-gray-900'
-//                 >
-//                   Estado
-//                 </label>
-//                 <div className='mt-2'>
-//                   <select
-//                     id='estado'
-//                     name='estado'
-//                     value={inputForm.estados}
-//                     onChange={(e) => handleChange(e)}
-//                     className='block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset placeholder:text-gray-400 focus:ring-2 focus:ring-indigo-600 sm:text-sm'
-//                   >
-//                     <option disabled>Elige</option>
-//                     <option value={"nuevo"}>Nuevo</option>
-//                     <option value={"swap"}>Swap</option>
-//                   </select>
-//                 </div>
-//               </div>
-//               {/* Precio */}
-//               <div className='sm:col-span-1'>
-//                 <label
-//                   htmlFor='precioBase'
-//                   className='block text-sm font-medium leading-6 text-gray-900'
-//                 >
-//                   Precio
-//                 </label>
-//                 <div className='mt-2'>
-//                   <input
-//                     id='precioBase'
-//                     type='number'
-//                     name='precioBase'
-//                     placeholder='Por Ej. 23'
-//                     value={inputForm.precioBase}
-//                     onChange={(e) => handleChange(e)}
-//                     className='block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset placeholder:text-gray-400 focus:ring-2 focus:ring-indigo-600 sm:text-sm'
-//                   />
-//                 </div>
-//               </div>
-//               {/* Disponible */}
-//               <div className='sm:col-span-1'>
-//                 <label
-//                   htmlFor='disponible'
-//                   className='block text-sm font-medium leading-6 text-gray-900'
-//                 >
-//                   Disponible
-//                 </label>
-//                 <div className='mt-2'>
-//                   <select
-//                     id='disponible'
-//                     name='disponible'
-//                     value={inputForm.disponible}
-//                     onChange={(e) => handleChange(e)}
-//                     className='block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset placeholder:text-gray-400 focus:ring-2 focus:ring-indigo-600 sm:text-sm'
-//                   >
-//                     <option disabled>Elige</option>
-//                     <option value={true}>Si</option>
-//                     <option value={false}>No</option>
-//                   </select>
-//                 </div>
-//               </div>
-//             </div>
-//           </div>
-//         </div>
-//         <div>
-//           <strong className='text-center block mb-2'>Seccion color del producto</strong>
-//           <p className='text-sm mb-4'>
-//             *Detalle según el título el color que quiere disponer
-//           </p>
-//         </div>
-
-//         {inputForm.color.map((color, index) => (
-//           <div className='mb-4 flex flex-col space-y-2' key={index}>
-//             <label className='text-sm font-medium'>Nombre</label>
-//             <input
-//               className='border border-gray-300 rounded p-2'
-//               type='text'
-//               name='nombre'
-//               value={color.nombre}
-//               onChange={(event) => handleColorChange(index, event)}
-//             />
-
-//             <label className='text-sm font-medium'>Imagen</label>
-//             <input
-//               type='file'
-//               className='border border-gray-300 rounded p-2'
-//               onChange={(event) => handleImageUploadColor(index, event)}
-//             />
-
-//             {color.imageColor && (
-//               <div className='mt-2'>
-//                 <img
-//                   src={color.imageColor}
-//                   alt='Uploaded'
-//                   className='w-24 h-24 object-cover rounded'
-//                 />
-//               </div>
-//             )}
-
-//             <label className='text-sm font-medium'>Stock</label>
-//             <input
-//               className='border border-gray-300 rounded p-2'
-//               type='number'
-//               name='stockColor'
-//               value={color.stockColor}
-//               onChange={(event) => handleColorChange(index, event)}
-//             />
-
-//             <label className='text-sm font-medium'>Estado</label>
-//             <select
-//               className='border border-gray-300 rounded p-2'
-//               name='estado'
-//               value={color.estado}
-//               onChange={(event) => handleColorChange(index, event)}
-//             >
-//               <option>Seleccione</option>
-//               <option value='nuevo'>Nuevo</option>
-//               <option value='swap'>Swap</option>
-//             </select>
-
-//             <button
-//               className='bg-red-500 text-white rounded py-2 mt-2'
-//               type='button'
-//               onClick={() => removeColor(index)}
-//             >
-//               Eliminar color
-//             </button>
-//           </div>
-//         ))}
-
-//         <button
-//           className='bg-green-500 text-white rounded py-2 mt-4'
-//           type='button'
-//           onClick={addColor}
-//         >
-//           Añadir color
-//         </button>
-
-//         <div className='mt-6'>
-//           <strong className='text-center block mb-2'>Seccion modelo del producto</strong>
-//           <p className='text-sm mb-4'>
-//             *En caso que el producto cuente con uno o varios modelos pulse añadir, de lo
-//             contrario omita.
-//           </p>
-//         </div>
-
-//         {inputForm.modelo.map((model, index) => (
-//           <div className='mb-4 flex flex-col space-y-2' key={index}>
-//             <label className='text-sm font-medium'>Modelo</label>
-//             <select
-//               className='border border-gray-300 rounded p-2'
-//               value={model.nombre}
-//               name='nombre'
-//               onChange={(event) => handleModelChange(index, event)}
-//             >
-//               <option disabled>Seleccione</option>
-//               <option value='Generico'>Generico</option>
-//               <option value='14 Pro Max'>16 Pro Max</option>
-//               <option value='14 Pro Max'>16 Pro</option>
-//               <option value='14 Pro Max'>16 </option>
-//               <option value='14 Pro Max'>15 Pro Max</option>
-//               <option value='14 Pro Max'>15 Pro</option>
-//               <option value='14 Pro Max'>15 </option>
-//               <option value='14 Pro Max'>14 Pro Max</option>
-//               <option value='14 Pro'>14 Pro</option>
-//               <option value='14 Plus'>14 Plus</option>
-//               <option value='14'>14</option>
-//               <option value='13 Pro Max'>13 Pro Max</option>
-//               <option value='13 Pro'>13 Pro</option>
-//               <option value='13 Mini'>13 Mini</option>
-//               <option value='13'>13</option>
-//               <option value='12 Pro Max'>12 Pro Max</option>
-//               <option value='12 Pro'>12 Pro</option>
-//               <option value='12 Mini'>12 Mini</option>
-//               <option value='12'>12</option>
-//               <option value='11 Pro Max'>11 Pro Max</option>
-//               <option value='11 Pro'>11 Pro</option>
-//               <option value='11'>11</option>
-//               <option value='SE(3rd)'>SE(3rd)</option>
-//               <option value='SE(2rd)'>SE(2rd)</option>
-//               <option value='iPhone XS'>iPhone-XS</option>
-//               <option value='iPhone XS Max'>iPhone-XS Max</option>
-//               <option value='iPhone XR'>iPhone-XR</option>
-//             </select>
-
-//             <label className='text-sm font-medium'>Precio</label>
-//             <input
-//               className='border border-gray-300 rounded p-2'
-//               type='number'
-//               name='precio'
-//               value={model.precio}
-//               onChange={(event) => handleModelChange(index, event)}
-//             />
-
-//             <label className='text-sm font-medium'>Stock</label>
-//             <input
-//               className='border border-gray-300 rounded p-2'
-//               type='number'
-//               name='stockModel'
-//               value={model.stockModel}
-//               onChange={(event) => handleModelChange(index, event)}
-//             />
-
-//             <label className='text-sm font-medium'>Disponible</label>
-//             <input
-//               className='form-checkbox'
-//               type='checkbox'
-//               name='disponible'
-//               checked={model.disponible}
-//               onChange={(event) =>
-//                 handleModelChangeB(index, event.target.name, event.target.checked)
-//               }
-//             />
-
-//             <label className='text-sm font-medium'>Imagen</label>
-//             <input
-//               type='file'
-//               className='border border-gray-300 rounded p-2'
-//               onChange={(event) => handleImageUploadModel(index, event)}
-//             />
-
-//             {model.imageModel && (
-//               <div className='mt-2'>
-//                 <img
-//                   src={model.imageModel}
-//                   alt='Uploaded'
-//                   className='w-24 h-24 object-cover rounded'
-//                 />
-//               </div>
-//             )}
-
-//             <button
-//               className='bg-red-500 text-white rounded py-2 mt-2'
-//               type='button'
-//               onClick={() => removeModel(index)}
-//             >
-//               Eliminar modelo
-//             </button>
-//           </div>
-//         ))}
-
-//         <button
-//           className='bg-green-500 text-white rounded py-2 mt-4'
-//           type='button'
-//           onClick={addModel}
-//         >
-//           Añadir modelo
-//         </button>
-
-//         <div className='mt-6'>
-//           <strong className='text-center block mb-2'>
-//             Seccion capacidad del producto
-//           </strong>
-//           <p className='text-sm mb-4'>
-//             *En caso que el producto cuente con almacenamiento pulse añadir, de lo
-//             contrario omita.
-//           </p>
-//         </div>
-
-//         {inputForm.almacenamiento.map((storage, index) => (
-//           <div className='mb-4 flex flex-col space-y-2' key={index}>
-//             <label className='text-sm font-medium'>Capacidad</label>
-//             <select
-//               className='border border-gray-300 rounded p-2'
-//               name='capacidad'
-//               value={storage.capacidad}
-//               onChange={(event) => handleStorageChange(index, event)}
-//             >
-//               <option disabled>Seleccione</option>
-//               <option value='64 GB'>64GB</option>
-//               <option value='128 GB'>128GB</option>
-//               <option value='256 GB'>256GB</option>
-//               <option value='512 GB'>512GB</option>
-//               <option value='1024 GB'>1024GB</option>
-//             </select>
-
-//             <label className='text-sm font-medium'>Precio</label>
-//             <input
-//               className='border border-gray-300 rounded p-2'
-//               type='number'
-//               name='precio'
-//               value={storage.precio}
-//               onChange={(event) => handleStorageChange(index, event)}
-//             />
-
-//             <label className='text-sm font-medium'>Stock</label>
-//             <input
-//               className='border border-gray-300 rounded p-2'
-//               type='number'
-//               name='stockStorage'
-//               value={storage.stockStorage}
-//               onChange={(event) => handleStorageChange(index, event)}
-//             />
-
-//             <label className='text-sm font-medium'>Disponible</label>
-//             <input
-//               className='form-checkbox'
-//               type='checkbox'
-//               name='disponible'
-//               checked={storage.disponible}
-//               onChange={(event) =>
-//                 handleStorageChangeB(index, event.target.name, event.target.checked)
-//               }
-//             />
-
-//             <label className='text-sm font-medium'>Estado</label>
-//             <select
-//               className='border border-gray-300 rounded p-2'
-//               name='estado'
-//               value={storage.estado}
-//               onChange={(event) => handleStorageChange(index, event)}
-//             >
-//               <option disabled> Seleccione</option>
-//               <option value='nuevo'>Nuevo</option>
-//               <option value='swap'>Swap</option>
-//             </select>
-
-//             <button
-//               className='bg-red-500 text-white rounded py-2 mt-2'
-//               type='button'
-//               onClick={() => removeStorage(index)}
-//             >
-//               Eliminar almacenamiento
-//             </button>
-//           </div>
-//         ))}
-
-//         <button
-//           className='bg-green-500 text-white rounded py-2 mt-4'
-//           type='button'
-//           onClick={addStorage}
-//         >
-//           Añadir almacenamiento
-//         </button>
-
-//         <div className='mt-6 flex items-center justify-end gap-x-6'>
-//           <button
-//             type='submit'
-//             className='rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600'
-//           >
-//             Crear Producto
-//           </button>
-//         </div>
-//       </form>
-//     </div>
-//   );
-// }
 "use client";
 
 import axios from "axios";
 import "react-toastify/dist/ReactToastify.css";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ToastContainer, toast } from "react-toastify";
 
 const API_BASE_URL = "https://iphonecaseoberab-production.up.railway.app";
@@ -850,6 +66,27 @@ export default function Crear() {
   const [loading, setLoading] = useState(false);
   const [inputForm, setInputForm] = useState(initialFormState);
 
+  //
+  useEffect(() => {
+    console.log("🎨 COLORS STATE:");
+    inputForm.colors.forEach((c, i) => {
+      console.log(`Color ${i}:`, {
+        colorKey: c.colorKey,
+        colorLabel: c.colorLabel,
+      });
+    });
+  }, [inputForm.colors]);
+
+  useEffect(() => {
+    console.log("📦 VARIANTS STATE:");
+    inputForm.variants.forEach((v, i) => {
+      console.log(`Variant ${i}:`, {
+        colorKey: v.attributes?.colorKey,
+        colorLabel: v.attributes?.colorLabel,
+      });
+    });
+  }, [inputForm.variants]);
+  //
   function buildCompatibleWith(variants) {
     const models = [
       ...new Set(variants.map((v) => v?.attributes?.model).filter(Boolean)),
@@ -965,7 +202,26 @@ export default function Crear() {
     setInputForm((prev) => {
       const newColors = [...prev.colors];
       newColors[index] = { ...newColors[index], [name]: value };
-      return { ...prev, colors: newColors };
+
+      // 🔥 sincronizar variantes que usen este color
+      const updatedVariants = prev.variants.map((variant) => {
+        if (variant.attributes?.colorKey === prev.colors[index].colorKey) {
+          return {
+            ...variant,
+            attributes: {
+              ...variant.attributes,
+              [name]: value,
+            },
+          };
+        }
+        return variant;
+      });
+
+      return {
+        ...prev,
+        colors: newColors,
+        variants: updatedVariants,
+      };
     });
   };
 
@@ -1417,7 +673,7 @@ export default function Crear() {
           description: normalizeText(inputForm.description).slice(0, 150),
         },
       };
-
+      console.log(payload);
       await axios.post(`${API_BASE_URL}/products`, payload);
 
       toast.success("Producto creado con éxito.");
@@ -1429,6 +685,283 @@ export default function Crear() {
     }
   };
 
+  const [openVariantDropdown, setOpenVariantDropdown] = useState(null);
+  const colorGroups = [
+    { name: "Rojo", val: "red" },
+    { name: "Naranja", val: "orange" },
+    { name: "Ámbar", val: "amber" },
+    { name: "Amarillo", val: "yellow" },
+    { name: "Lima", val: "lime" },
+    { name: "Verde", val: "green" },
+    { name: "Esmeralda", val: "emerald" },
+    { name: "Teal", val: "teal" },
+    { name: "Cian", val: "cyan" },
+    { name: "Cielo", val: "sky" },
+    { name: "Azul", val: "blue" },
+    { name: "Índigo", val: "indigo" },
+    { name: "Violeta", val: "violet" },
+    { name: "Púrpura", val: "purple" },
+    { name: "Fucsia", val: "fuchsia" },
+    { name: "Rosa", val: "pink" },
+    { name: "Rosa Intenso", val: "rose" },
+    { name: "Pizarra", val: "slate" },
+    { name: "Gris", val: "gray" },
+    { name: "Zinc", val: "zinc" },
+    { name: "Neutral", val: "neutral" },
+    { name: "Piedra", val: "stone" },
+    { name: "Taupe", val: "taupe" },
+    { name: "Malva", val: "mauve" },
+    { name: "Neblina", val: "mist" },
+    { name: "Oliva", val: "olive" },
+  ];
+  const levels = [200, 300, 400, 500, 600, 700, 800];
+  const tailwindPalette = {
+    amber: {
+      200: "#fee685",
+      300: "#ffd230",
+      400: "#ffb900",
+      500: "#fe9a00",
+      600: "#e17100",
+      700: "#bb4d00",
+      800: "#973c00",
+    },
+    blue: {
+      200: "#bedbff",
+      300: "#8ec5ff",
+      400: "#51a2ff",
+      500: "#2b7fff",
+      600: "#155dfb",
+      700: "#1447e6",
+      800: "#193cb8",
+    },
+    cyan: {
+      200: "#a2f4fd",
+      300: "#53eafd",
+      400: "#00d3f2",
+      500: "#00b8db",
+      600: "#0092b8",
+      700: "#007595",
+      800: "#005f78",
+    },
+    emerald: {
+      200: "#a4f4cf",
+      300: "#5ee9b5",
+      400: "#00d492",
+      500: "#00bc7d",
+      600: "#009966",
+      700: "#007a55",
+      800: "#006045",
+    },
+    fuchsia: {
+      200: "#f6cfff",
+      300: "#f4a8ff",
+      400: "#ed6aff",
+      500: "#e12afb",
+      600: "#c800de",
+      700: "#a800b7",
+      800: "#8a0194",
+    },
+    gray: {
+      200: "#e5e7eb",
+      300: "#d1d5db",
+      400: "#99a1af",
+      500: "#6a7282",
+      600: "#4a5565",
+      700: "#364153",
+      800: "#1e2939",
+    },
+    green: {
+      200: "#b9f8cf",
+      300: "#7bf1a7",
+      400: "#06df72",
+      500: "#00c950",
+      600: "#00a63e",
+      700: "#008235",
+      800: "#026630",
+    },
+    indigo: {
+      200: "#c7d2ff",
+      300: "#a3b3ff",
+      400: "#7c86ff",
+      500: "#615fff",
+      600: "#4f39f6",
+      700: "#432dd7",
+      800: "#372aac",
+    },
+    lime: {
+      200: "#d8f999",
+      300: "#bbf451",
+      400: "#9ae600",
+      500: "#7ccf00",
+      600: "#5ea500",
+      700: "#497d00",
+      800: "#3d6300",
+    },
+    mauve: {
+      200: "#e7e4e7",
+      300: "#d7d0d7",
+      400: "#a89ea9",
+      500: "#79697b",
+      600: "#594c5b",
+      700: "#463947",
+      800: "#2a212c",
+    },
+    mist: {
+      200: "#e3e7e8",
+      300: "#d0d6d8",
+      400: "#9ca8ab",
+      500: "#67787c",
+      600: "#4b585b",
+      700: "#394447",
+      800: "#22292b",
+    },
+    neutral: {
+      200: "#e5e5e5",
+      300: "#d4d4d4",
+      400: "#a1a1a1",
+      500: "#737373",
+      600: "#525252",
+      700: "#404040",
+      800: "#262626",
+    },
+    olive: {
+      200: "#e8e8e3",
+      300: "#d8d8d0",
+      400: "#abab9c",
+      500: "#7c7c67",
+      600: "#5b5b4b",
+      700: "#474739",
+      800: "#2b2b22",
+    },
+    orange: {
+      200: "#ffd6a7",
+      300: "#ffb869",
+      400: "#ff8903",
+      500: "#ff6900",
+      600: "#f54900",
+      700: "#ca3500",
+      800: "#9f2d00",
+    },
+    pink: {
+      200: "#fccee8",
+      300: "#fea5d5",
+      400: "#fb64b6",
+      500: "#f6339a",
+      600: "#e60076",
+      700: "#c6005b",
+      800: "#a3004c",
+    },
+    purple: {
+      200: "#e9d4ff",
+      300: "#dab2ff",
+      400: "#c27aff",
+      500: "#ad46ff",
+      600: "#9810fa",
+      700: "#8200db",
+      800: "#6e11b0",
+    },
+    red: {
+      200: "#ffc9c9",
+      300: "#ffa2a2",
+      400: "#ff6467",
+      500: "#fb2c36",
+      600: "#e7000b",
+      700: "#c10007",
+      800: "#9f0712",
+    },
+    rose: {
+      200: "#ffccd2",
+      300: "#ffa1ad",
+      400: "#ff637e",
+      500: "#ff2056",
+      600: "#ed003f",
+      700: "#c70036",
+      800: "#a50036",
+    },
+    sky: {
+      200: "#b8e6fe",
+      300: "#74d4ff",
+      400: "#00bcff",
+      500: "#00a6f4",
+      600: "#0084d1",
+      700: "#0069a8",
+      800: "#00598a",
+    },
+    slate: {
+      200: "#e2e8f0",
+      300: "#cad5e2",
+      400: "#90a1b9",
+      500: "#62748e",
+      600: "#45556c",
+      700: "#314158",
+      800: "#1d293d",
+    },
+    stone: {
+      200: "#e7e5e4",
+      300: "#d7d3d1",
+      400: "#a6a09b",
+      500: "#79716b",
+      600: "#57534d",
+      700: "#44403b",
+      800: "#292524",
+    },
+    taupe: {
+      200: "#e8e4e3",
+      300: "#d8d2d0",
+      400: "#aba09c",
+      500: "#7c6d67",
+      600: "#5b4f4b",
+      700: "#473c39",
+      800: "#2b2422",
+    },
+    teal: {
+      200: "#96f7e4",
+      300: "#46ecd4",
+      400: "#00d5bd",
+      500: "#00bba7",
+      600: "#009689",
+      700: "#00786f",
+      800: "#005f5a",
+    },
+    violet: {
+      200: "#ddd6ff",
+      300: "#c4b4ff",
+      400: "#a684ff",
+      500: "#8e51ff",
+      600: "#7f22fe",
+      700: "#7008e7",
+      800: "#5d0ec0",
+    },
+    yellow: {
+      200: "#fff085",
+      300: "#ffdf20",
+      400: "#fdc700",
+      500: "#f0b100",
+      600: "#d18700",
+      700: "#a65f00",
+      800: "#894b00",
+    },
+    zinc: {
+      200: "#e4e4e7",
+      300: "#d4d4d8",
+      400: "#9f9fa9",
+      500: "#71717b",
+      600: "#52525c",
+      700: "#3f3f46",
+      800: "#27272a",
+    },
+  };
+  const getColorFromPalette = (key) => {
+    if (!key) return "#000000";
+    const [group, level] = key.split("-");
+    return tailwindPalette[group]?.[level] || "#000000";
+  };
+  const [openDropdown, setOpenDropdown] = useState(null);
+
+  const toggleDropdown = (index) => {
+    setOpenDropdown((prev) => (prev === index ? null : index));
+  };
+  const [activeGroup, setActiveGroup] = useState(colorGroups[0]);
   return (
     <div className='relative isolate overflow-hidden bg-white px-6 pb-6 lg:overflow-visible lg:px-0'>
       <h2 className='text-center font-semibold leading-7 text-gray-900'>
@@ -1617,46 +1150,122 @@ export default function Crear() {
             </div>
           </div>
         </div>
-
+        {/* --- SECCIÓN 1: SELECTOR TÉCNICO DE COLOR --- */}
         <div>
           <strong className='mb-2 block text-center'>Sección color del producto</strong>
           <p className='mb-4 text-sm'>
             Agrega colores si el producto tiene variantes por color.
           </p>
         </div>
-
         {inputForm.colors.map((color, index) => (
           <div className='mb-4 flex flex-col space-y-2 rounded border p-4' key={index}>
-            <label className='text-sm font-medium'>Color técnico</label>
+            {/* --- SECCIÓN 1: SELECTOR TÉCNICO DE COLOR --- */}
+            <label className='text-sm font-medium text-gray-700'>Color técnico</label>
 
-            <select
-              className='rounded border border-gray-300 p-2'
-              value={color.colorKey}
-              onChange={(event) => {
-                handleColorChangeB(index, "colorKey", event.target.value);
-              }}
-            >
-              <option value=''>Seleccionar color</option>
-              <option value='black'>Negro</option>
-              <option value='white'>Blanco</option>
-              <option value='gray'>Gris</option>
-              <option value='blue'>Azul</option>
-              <option value='green'>Verde</option>
-              <option value='red'>Rojo</option>
-              <option value='yellow'>Amarillo</option>
-              <option value='pink'>Rosa</option>
-              <option value='purple'>Morado</option>
-              <option value='orange'>Naranja</option>
-              <option value='brown'>Marrón</option>
-              <option value='beige'>Beige</option>
-              <option value='transparent'>Transparente</option>
-            </select>
+            {/* Selector Custom */}
+            <div className='group/dropdown relative w-full z-[100]'>
+              <div
+                onClick={() => toggleDropdown(index)}
+                className='w-full rounded border border-gray-300 p-2 bg-white cursor-pointer flex justify-between items-center hover:border-blue-500 transition-all'
+              >
+                {" "}
+                <div className='flex items-center gap-2'>
+                  {/* Pequeña muestra del color seleccionado actualmente */}
+                  {color.colorKey && (
+                    <div
+                      className='w-4 h-4 rounded-full border border-gray-200'
+                      style={{
+                        backgroundColor: color.colorKey.includes("-")
+                          ? tailwindPalette[color.colorKey.split("-")[0]]?.[
+                              color.colorKey.split("-")[1]
+                            ]
+                          : color.colorKey,
+                      }}
+                    />
+                  )}
+                  <span className='text-sm font-bold uppercase tracking-tight'>
+                    {color.colorKey || "Seleccionar color"}
+                  </span>
+                </div>
+                <span className='text-gray-400 text-[10px]'>▼</span>
+              </div>
 
-            <label className='text-sm font-medium'>Nombre visible</label>
+              {/* Menú Principal */}
+              {openDropdown === index && (
+                <div className='absolute left-0 top-full mt-1 w-full max-w-[600px] bg-white border border-gray-200 shadow-2xl rounded-lg py-2 max-h-80 overflow-y-auto scrollbar-thin'>
+                  {/* Colores Sólidos */}
+                  <div className='px-2'>
+                    {["black", "white"].map((c) => (
+                      <div
+                        key={c}
+                        onClick={() => {
+                          handleColorChangeB(index, "colorKey", c);
+                          setOpenDropdown(null);
+                        }}
+                        className='px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm flex justify-between items-center capitalize rounded'
+                      >
+                        {c === "black" ? "Negro" : "Blanco"}
+                        <div
+                          className='w-4 h-4 border border-gray-300 rounded shadow-inner'
+                          style={{ backgroundColor: c }}
+                        />
+                      </div>
+                    ))}
+                  </div>
 
+                  <hr className='my-2 border-gray-100' />
+
+                  {/* Grupos Dinámicos en columnas */}
+                  <div className='flex w-full'>
+                    {/* COLUMNA IZQUIERDA */}
+                    <div className='w-1/2 border-r'>
+                      {colorGroups.map((group) => (
+                        <div
+                          key={group.val}
+                          onMouseEnter={() => setActiveGroup(group)}
+                          className='px-4 py-2 hover:bg-blue-50 cursor-pointer text-sm'
+                        >
+                          {group.name}
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* COLUMNA DERECHA */}
+                    <div className='w-1/2 max-h-72 overflow-y-auto sticky top-0 bg-white'>
+                      {activeGroup &&
+                        levels.map((level) => {
+                          const fullValue = `${activeGroup.val}-${level}`;
+                          const hexColor =
+                            tailwindPalette[activeGroup.val]?.[level] || "#ccc";
+
+                          return (
+                            <div
+                              key={level}
+                              onClick={() => {
+                                handleColorChangeB(index, "colorKey", fullValue);
+                                setOpenDropdown(null);
+                              }}
+                              className='px-4 py-2 hover:bg-blue-600 hover:text-white cursor-pointer text-sm flex justify-between items-center transition-all'
+                            >
+                              <span className='font-mono'>{level}</span>
+                              <div
+                                className='w-full h-6 rounded shadow-sm border border-black/10'
+                                style={{ backgroundColor: hexColor }}
+                              />
+                            </div>
+                          );
+                        })}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* --- SECCIÓN 2: RESTO DEL FORMULARIO ORIGINAL --- */}
+            <label className='text-sm font-medium mt-2'>Nombre visible</label>
             <input
               type='text'
-              className='rounded border border-gray-300 p-2'
+              className='rounded border border-gray-300 p-2 focus:ring-2 focus:ring-blue-200 outline-none'
               placeholder='Ej: Titanio Negro'
               name='colorLabel'
               value={color.colorLabel}
@@ -1664,40 +1273,40 @@ export default function Crear() {
             />
 
             <label className='text-sm font-medium'>Imagen</label>
-
             <input
               type='file'
-              className='rounded border border-gray-300 p-2'
+              className='text-xs'
               onChange={(event) => handleImageUploadColor(index, event)}
             />
-
             {color.imageColor && (
-              <div className='mt-2'>
+              <div className='mt-1'>
                 <img
                   src={color.imageColor}
-                  alt='Uploaded'
-                  className='h-24 w-24 rounded object-cover'
+                  alt='Preview'
+                  className='h-16 w-16 rounded shadow-md object-cover border'
                 />
               </div>
             )}
 
-            <label className='text-sm font-medium'>Stock</label>
-
-            <input
-              className='rounded border border-gray-300 p-2'
-              type='number'
-              name='stockColor'
-              value={color.stockColor}
-              onChange={(event) => handleColorChange(index, event)}
-            />
-
-            <button
-              className='mt-2 rounded bg-red-500 py-2 text-white'
-              type='button'
-              onClick={() => removeColor(index)}
-            >
-              Eliminar color
-            </button>
+            <div className='flex gap-4 items-end'>
+              <div className='flex-1'>
+                <label className='text-sm font-medium'>Stock</label>
+                <input
+                  className='w-full rounded border border-gray-300 p-2'
+                  type='number'
+                  name='stockColor'
+                  value={color.stockColor}
+                  onChange={(event) => handleColorChange(index, event)}
+                />
+              </div>
+              <button
+                className='rounded bg-red-50 px-4 py-2 text-red-600 border border-red-200 hover:bg-red-500 hover:text-white transition-all text-sm font-bold'
+                type='button'
+                onClick={() => removeColor(index)}
+              >
+                Eliminar
+              </button>
+            </div>
           </div>
         ))}
 
@@ -1709,13 +1318,14 @@ export default function Crear() {
           Añadir color
         </button>
 
+        {/* --- SECCIÓN 1: SELECTOR TÉCNICO DE COLOR --- */}
+
         <div className='mt-6'>
           <strong className='mb-2 block text-center'>Sección modelo del producto</strong>
           <p className='mb-4 text-sm'>
             Agrega modelos si el producto tiene compatibilidad o variantes por modelo.
           </p>
         </div>
-
         {inputForm.models.map((model, index) => (
           <div className='mb-4 flex flex-col space-y-2' key={index}>
             <label className='text-sm font-medium'>Modelo</label>
@@ -1772,7 +1382,6 @@ export default function Crear() {
             </button>
           </div>
         ))}
-
         <button
           className='mt-4 rounded bg-green-500 py-2 text-white'
           type='button'
@@ -1780,7 +1389,6 @@ export default function Crear() {
         >
           Añadir modelo
         </button>
-
         <div className='mt-6'>
           <strong className='mb-2 block text-center'>
             Sección almacenamiento del producto
@@ -1789,7 +1397,6 @@ export default function Crear() {
             Agrega capacidades si el producto tiene variantes por almacenamiento.
           </p>
         </div>
-
         {inputForm.storages.map((storage, index) => (
           <div className='mb-4 flex flex-col space-y-2' key={index}>
             <label className='text-sm font-medium'>Capacidad</label>
@@ -1829,7 +1436,6 @@ export default function Crear() {
             </button>
           </div>
         ))}
-
         <button
           className='mt-4 rounded bg-green-500 py-2 text-white'
           type='button'
@@ -1837,7 +1443,6 @@ export default function Crear() {
         >
           Añadir almacenamiento
         </button>
-
         <div className='mt-8 rounded border border-gray-200 bg-gray-50 p-4'>
           <div className='flex items-center justify-between gap-3 flex-wrap'>
             <h3 className='font-semibold text-gray-900'>Variantes</h3>
@@ -1884,34 +1489,115 @@ export default function Crear() {
                       onChange={(e) => handleVariantChange(index, "sku", e.target.value)}
                     />
                   </div>
-
+                  {/* COLOR TECNICO DE LAS VARIANTE PARA POSIBILIDAD DE MODIFICAR*/}
+                  {/* 🔵 COLOR TÉCNICO */}
                   <div>
                     <label className='block text-sm font-medium'>Color técnico</label>
 
-                    <select
-                      className='w-full rounded border border-gray-300 p-2'
-                      value={variant.attributes?.colorKey || ""}
-                      onChange={(e) =>
-                        handleVariantAttributeChange(index, "colorKey", e.target.value)
-                      }
-                    >
-                      <option value=''>Seleccionar color</option>
-                      <option value='black'>Negro</option>
-                      <option value='white'>Blanco</option>
-                      <option value='gray'>Gris</option>
-                      <option value='blue'>Azul</option>
-                      <option value='green'>Verde</option>
-                      <option value='red'>Rojo</option>
-                      <option value='yellow'>Amarillo</option>
-                      <option value='pink'>Rosa</option>
-                      <option value='purple'>Morado</option>
-                      <option value='orange'>Naranja</option>
-                      <option value='brown'>Marrón</option>
-                      <option value='beige'>Beige</option>
-                      <option value='transparent'>Transparente</option>
-                    </select>
+                    <div className='relative'>
+                      {/* BOTÓN */}
+                      <div
+                        onClick={() =>
+                          setOpenVariantDropdown((prev) =>
+                            prev === index ? null : index,
+                          )
+                        }
+                        className='flex items-center justify-between border p-2 rounded cursor-pointer bg-white'
+                      >
+                        <div className='flex items-center gap-2'>
+                          <div
+                            className='w-4 h-4 rounded-full border'
+                            style={{
+                              backgroundColor: getColorFromPalette(
+                                variant.attributes?.colorKey,
+                              ),
+                            }}
+                          />
+
+                          <span className='text-sm text-gray-700'>
+                            {variant.attributes?.colorKey || "Seleccionar color"}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* DROPDOWN */}
+                      {openVariantDropdown === index && (
+                        <div className='absolute left-0 top-full mt-1 w-full max-w-[600px] bg-white border border-gray-200 shadow-2xl rounded-lg py-2 max-h-72 overflow-y-auto z-50'>
+                          {/* COLORES SÓLIDOS */}
+                          <div className='px-2'>
+                            {["black", "white"].map((c) => (
+                              <div
+                                key={c}
+                                onClick={() => {
+                                  handleVariantAttributeChange(index, "colorKey", c);
+                                  setOpenVariantDropdown(null);
+                                }}
+                                className='px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm flex justify-between items-center capitalize rounded'
+                              >
+                                {c === "black" ? "Negro" : "Blanco"}
+                                <div
+                                  className='w-4 h-4 border border-gray-300 rounded'
+                                  style={{ backgroundColor: c }}
+                                />
+                              </div>
+                            ))}
+                          </div>
+
+                          <hr className='my-2 border-gray-100' />
+
+                          {/* PANEL */}
+                          <div className='flex w-full max-h-72'>
+                            <div className='w-1/2 border-r overflow-y-auto'>
+                              {colorGroups.map((group) => (
+                                <div
+                                  key={group.val}
+                                  onMouseEnter={() => setActiveGroup(group)}
+                                  className={`px-4 py-2 cursor-pointer text-sm ${
+                                    activeGroup?.val === group.val
+                                      ? "bg-blue-100 font-semibold"
+                                      : "hover:bg-blue-50"
+                                  }`}
+                                >
+                                  {group.name}
+                                </div>
+                              ))}
+                            </div>
+
+                            <div className='w-1/2 sticky top-0 bg-white'>
+                              {activeGroup &&
+                                levels.map((lvl) => {
+                                  const key = `${activeGroup.val}-${lvl}`;
+                                  const hex = tailwindPalette[activeGroup.val]?.[lvl];
+
+                                  return (
+                                    <div
+                                      key={key}
+                                      onClick={() => {
+                                        handleVariantAttributeChange(
+                                          index,
+                                          "colorKey",
+                                          key,
+                                        );
+                                        setOpenVariantDropdown(null);
+                                      }}
+                                      className='flex items-center justify-between px-4 py-2 hover:bg-blue-600 hover:text-white cursor-pointer text-sm transition-all'
+                                    >
+                                      <span className='font-mono'>{lvl}</span>
+                                      <div
+                                        className='w-full h-6 rounded border border-black/10'
+                                        style={{ backgroundColor: hex }}
+                                      />
+                                    </div>
+                                  );
+                                })}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </div>
 
+                  {/* 🟣 COLOR LABEL (EDITABLE) */}
                   <div>
                     <label className='block text-sm font-medium'>Nombre visible</label>
 
@@ -1924,7 +1610,7 @@ export default function Crear() {
                       placeholder='Ej: Titanio Negro'
                     />
                   </div>
-
+                  {/* COLOR TECNICO DE LAS VARIANTE PARA POSIBILIDAD DE MODIFICAR*/}
                   <div>
                     <label className='block text-sm font-medium'>Modelo</label>
                     <input
@@ -2000,7 +1686,6 @@ export default function Crear() {
             ))}
           </div>
         </div>
-
         <div className='mt-6 flex items-center justify-end gap-x-6'>
           <button
             type='submit'
