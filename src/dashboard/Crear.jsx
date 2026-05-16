@@ -2,7 +2,7 @@
 
 import axios from "axios";
 import "react-toastify/dist/ReactToastify.css";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { ToastContainer, toast } from "react-toastify";
 
 const API_BASE_URL = "https://iphonecaseoberab-production.up.railway.app";
@@ -65,7 +65,6 @@ export default function Crear() {
   const [selectedImage, setSelectedImage] = useState(null);
   const [loading, setLoading] = useState(false);
   const [inputForm, setInputForm] = useState(initialFormState);
-
 
   function buildCompatibleWith(variants) {
     const models = [
